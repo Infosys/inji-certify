@@ -110,7 +110,10 @@
 		<module>certify-service</module>
 		<module>certify-core</module>
 		<module>certify-integration-api</module>
-	</modules>
+        <module>data-model-service-impl</module>
+        <module>data-model-service-impl</module>
+        <module>data-model-service-impl</module>
+    </modules>
 
 	<dependencies>
 		<dependency>
