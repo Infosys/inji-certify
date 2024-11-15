@@ -83,11 +83,14 @@ services:
 
   inji-web:
     container_name: 'inji-web'
-    image: inji-web:mcd
+    image: mosipdev/inji-web:develop
+#    image: inji-web:mcd
     ports:
       - '81:80'
+      - '3001:3004'
     environment:
-      - MIMOTO_HOST=http://localhost:3010
+      - MIMOTO_HOST=http://localhost:3010/v1/mimoto
+      - DEFAULT_LANG=en
     depends_on:
       - inji-web-proxy
     networks:
