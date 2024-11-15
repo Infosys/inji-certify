@@ -14,7 +14,7 @@ services:
       - "5433:5432"
 
   certify:
-    image: inji-certify:local
+    image: mosipdev/inji-certify:develop
     user: root
     ports:
       - 8090:8090
@@ -24,7 +24,7 @@ services:
       - SPRING_CONFIG_NAME=certify
       - SPRING_CONFIG_LOCATION=/home/mosip/config/
       - enable_certify_artifactory=false
-    #      - download_hsm_client=true
+      - download_hsm_client=false
     volumes:
       - ./config/certify-default.properties:/home/mosip/config/certify-default.properties
       - ./config/certify-mock-identity.properties:/home/mosip/config/certify-mock-identity.properties

@@ -240,41 +240,41 @@ INSERT INTO certify.template_data (context, credential_type, template, cr_dtimes
         "face": "${face}"
     }
 }', '2024-10-22 17:08:17.826851', NULL);
-INSERT INTO certify.template_data (context, credential_type, template, cr_dtimes, upd_dtimes) VALUES ('https://vharsh.github.io/DID/farmer.json,https://www.w3.org/2018/credentials/v1', 'FarmerProfileCredential,VerifiableCredential', '{
-    "@context": [
-            "https://www.w3.org/2018/credentials/v1",
-            "https://vharsh.github.io/DID/farmer.json"
-    ],
-    "issuer": "${issuer}",
-    "type": [
-        "VerifiableCredential",
-        "FarmerProfileCredential"
-    ],
-    "issuanceDate": "${validFrom}",
-    "expirationDate": "${validUntil}",
-    "credentialSubject": {
-        "id": "${id}",
-        "name": "${name}",
-        "dateOfBirth": "${dateOfBirth}",
-        "highestEducation": "${highestEducation}",
-        "maritalStatus": "${maritalStatus}",
-        "typeOfHouse": "${typeOfHouse}",
-        "numberOfDependents": ${numberOfDependents},
-        "phoneNumber": "${phoneNumber}",
-        "knowsLanguage": ${knowsLanguage},
-        "works": "${works}",
-        "farmingTypes": ${farmingTypes},
-        "landArea": ${landArea},
-        "landOwnershipType": "${landOwnershipType}",
-        "primaryCropType": "${primaryCropType}",
-        "secondaryCropType": "${secondaryCropType}"
-    }
+INSERT INTO certify.template_data (context, credential_type, template, cr_dtimes, upd_dtimes) VALUES ('https://www.w3.org/2018/credentials/v1', 'FarmerCredential,VerifiableCredential', '{
+     "@context": [
+                "https://www.w3.org/2018/credentials/v1",
+                "https://vharsh.github.io/DID/farmer.json",
+    "https://w3id.org/security/suites/ed25519-2020/v1"
+        ],
+        "issuer": "${issuer}",
+        "type": [
+            "VerifiableCredential",
+            "FarmerCredential"
+        ],
+        "issuanceDate": "${validFrom}",
+        "expirationDate": "${validUntil}",
+        "credentialSubject": {
+            "name": "${name}",
+            "dateOfBirth": "${dateOfBirth}",
+            "highestEducation": "${highestEducation}",
+            "maritalStatus": "${maritalStatus}",
+            "typeOfHouse": "${typeOfHouse}",
+            "numberOfDependents": "${numberOfDependents}",
+            "phoneNumber": "${phoneNumber}",
+            "works": "${works}",
+            "landArea": "${landArea}",
+            "landOwnershipType": "${landOwnershipType}",
+            "primaryCropType": "${primaryCropType}",
+            "secondaryCropType": "${secondaryCropType}"
+        }
 }
 ', '2024-10-24 12:32:38.065994', NULL);
 
 
 INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('ROOT', 2920, 1125, 'NA', true, 'mosipadmin', now());
-INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_SERVICE', 1095, 50, 'NA', true, 'mosipadmin', now());
-INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_PARTNER', 1095, 50, 'NA', true, 'mosipadmin', now());
-INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_MOCK_RSA', 1095, 50, 'NA', true, 'mosipadmin', now());
+INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_SERVICE', 1095, 60, 'NA', true, 'mosipadmin', now());
+INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_PARTNER', 1095, 60, 'NA', true, 'mosipadmin', now());
+INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_MOCK_RSA', 1095, 60, 'NA', true, 'mosipadmin', now());
+INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('CERTIFY_MOCK_ED25519', 1095, 60, 'NA', true, 'mosipadmin', now());
+INSERT INTO certify.key_policy_def(APP_ID,KEY_VALIDITY_DURATION,PRE_EXPIRE_DAYS,ACCESS_ALLOWED,IS_ACTIVE,CR_BY,CR_DTIMES) VALUES('BASE', 1095, 60, 'NA', true, 'mosipadmin', now());
 
