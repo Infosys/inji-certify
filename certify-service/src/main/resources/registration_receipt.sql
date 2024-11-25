@@ -75,32 +75,7 @@ VALUES
      '654.321.987-00',
      'João Silva',
      892.5632,
-     50.2134, 45.6789, 612.3456, 145.6782, 105.4321, 55.4321, 40.5678);
-
-
-INSERT INTO registration_receipt_data (
-    registration_id,
-    car_registration_number,
-    registration_date,
-    rural_property_name,
-    municipality,
-    latitude,
-    longitude,
-    total_area,
-    fiscal_modules,
-    protocol_code,
-    cpf,
-    holder_name,
-    total_area_declared,
-    administrative_easement_area,
-    net_area,
-    consolidated_area,
-    native_vegetation_remnant,
-    legal_reserve_area,
-    permanent_preservation_area,
-    restricted_use_area
-)
-VALUES
+     50.2134, 45.6789, 612.3456, 145.6782, 105.4321, 55.4321, 40.5678),
     ('4567538769',
      'GO-5220009-12A3.B456.7890.1234.DEF5.6789.0123.ABCD',
      '2024-10-25T16:40:31Z',
