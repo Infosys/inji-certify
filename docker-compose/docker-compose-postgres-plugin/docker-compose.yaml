@@ -83,7 +83,7 @@ services:
 
   inji-web:
     container_name: 'inji-web'
-    image: mosipdev/inji-web:injiweb-1056-car-theme-changes
+    image: mosipdev/inji-web:develop
     ports:
       - '3001:3004'
     environment:
