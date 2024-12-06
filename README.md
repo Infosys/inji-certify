@@ -215,104 +215,72 @@ Execute installation script
 
 ## Configuration docs for Postgres Plugin
 
-* Create the tables with all the fields that should be returned by the Postgres Data Provider Plugin within the certify postgres database.
+1. Create the tables with all the fields that should be returned by the Postgres Data Provider Plugin within the certify postgres database.
     Refer the following query for insertion in DB:
         CREATE TABLE certify.registration_receipt_data (
-          registration_id VARCHAR(36) NOT NULL,
-          car_registration_number VARCHAR(255),
-          registration_date VARCHAR,
-          rural_property_name VARCHAR(255),
-          municipality VARCHAR(255),
-          latitude VARCHAR(50),
-          longitude VARCHAR(50),
-          total_area NUMERIC(12,4),
-          fiscal_modules NUMERIC(12,4),
-          protocol_code VARCHAR(255),
-          cpf VARCHAR(20),
-          holder_name VARCHAR(255),
-          total_area_declared NUMERIC(12,4),
-          administrative_easement_area NUMERIC(12,4),
-          net_area NUMERIC(12,4),
-          consolidated_area NUMERIC(12,4),
-          native_vegetation_remnant NUMERIC(12,4),
-          legal_reserve_area NUMERIC(12,4),
-          permanent_preservation_area NUMERIC(12,4),
-          restricted_use_area NUMERIC(12,4),
+          attribute_1 <type> NOT NULL,
+          attribute_2 <type> NOT NULL,
+          ...
           CONSTRAINT pk_reg_id_code PRIMARY KEY (registration_id)
         );
 
-    * The schema context containing all the required fields should be hosted in a public url.
-        * Refer this link for an existing context: [Registration Receipt Schema](https://piyush7034.github.io/my-files/registration_receipt.json)
-            Eg: https://<username>.github.io/<project_name>/<file_name>.json
-          * Also change the respective credential name:
-                {
-                    "@context": {
-                        "@version": 1.1,
-                        "@protected": true,
-                        "type": "@type",
-                        "schema": "https://schema.org/",
-                        "<credential_name>": {
-                            "@id": "https://<username>.github.io/<project_name>/<file_name>.json#<credential_name>"
-                        },
-                        <field1>: "schema:<type>"
-                        <field2>: "schema:<type>"
-                        ...
-                    }
-                }
-    * The primary_key should be a UIN that is existing in the current mock_identity_system records.
-      Eg: If "1234" is present in mock_identity table, then same UIN should be used for inserting records in the certify data tables
-    * When the authentication is done using this particular UIN then the record from certify tables can be fetched by the postgres plugin and returned as a JSON Object.
+2. The schema context containing all the required fields should be hosted in a public url.
+   - Refer this link for an existing context: [Registration Receipt Schema](https://piyush7034.github.io/my-files/registration_receipt.json)
+       Eg: https://<username>.github.io/<project_name>/<file_name>.json
+   - Also change the respective credential name:
+        {
+            "@context": {
+                "@version": 1.1,
+                "@protected": true,
+                "type": "@type",
+                "schema": "https://schema.org/",
+                "<credential_name>": {
+                    "@id": "https://<username>.github.io/<project_name>/<file_name>.json#<credential_name>"
+                },
+                <field1>: "schema:<type>"
+                <field2>: "schema:<type>"
+                ...
+            }
+        }
+   - The primary_key should be a UIN that is existing in the current mock_identity_system records.
+       Eg: If "1234" is present in mock_identity table, then same UIN should be used for inserting records in the certify data tables
+   - When the authentication is done using this particular UIN then the record from certify tables can be fetched by the postgres plugin and returned as a JSON Object.
 
-* Insert the templates in the DB with credential subject containing all the fields which must be the part of issued credential.
-    * Eg: Find the below template for reference:
+3. Insert the templates in the DB with credential subject containing all the fields which must be the part of issued credential.
+   - Eg: Find the below template for reference:
         {
           "@context": [
-          "https://www.w3.org/2018/credentials/v1",
-          "https://piyush7034.github.io/my-files/registration-receipt.json",
-          "https://w3id.org/security/suites/ed25519-2020/v1"
+            "https://www.w3.org/2018/credentials/v1",
+            "https://piyush7034.github.io/my-files/registration-receipt.json",
+            "https://w3id.org/security/suites/ed25519-2020/v1"
           ],
           "issuer": "${issuer}",
           "type": [
-          "VerifiableCredential",
-          "RegistrationReceiptCredential"
+            "VerifiableCredential",
+            "RegistrationReceiptCredential"
           ],
           "issuanceDate": "${validFrom}",
           "expirationDate": "${validUntil}",
           "credentialSubject": {
-              "NumeroDeRegistroCAR": "${car_registration_number}",
-              "DataDeRegistro": "${registration_date}",
-              "NomeDaPropriedadeRural": "${rural_property_name}",
-              "Municipio": "${municipality}",
-              "Latitude": "${latitude}",
-              "Longitude": "${longitude}",
-              "AreaTotal": ${total_area},
-              "ModulosFiscais": ${fiscal_modules},
-              "CodigoDeProtocolo": "${protocol_code}",
-              "CPF": "${cpf}",
-              "Nome": "${holder_name}",
-              "AreaTotalDeclarada": ${total_area_declared},
-              "AreaDeServidaoAdministrativa": ${administrative_easement_area},
-              "AreaLiquida": ${net_area},
-              "AreaConsolidada": ${consolidated_area},
-              "RemanescenteDeVegetacaoNativa": ${native_vegetation_remnant},
-              "AreaDeReservaLegal": ${legal_reserve_area},
-              "AreaDePreservacaoPermanente": ${permanent_preservation_area},
-              "AreaDeUsoRestrito": ${restricted_use_area}
+              "attributeName1": "${<attribute1>}",
+              "attributeName2": "${<attribue2>}"
+              ...
           }
         }
+   - For referring the table creation and template insertion, see the sql scripts under certify_init.sql file: [certify-init](docker-compose/docker-compose-injistack/certify_init.sql)
 
-* inji-config changes:
-    * Refer to the properties file in [inji-config](https://github.com/mosip/inji-config) that corresponds to the postgres plugin implementation.
+4. inji-config changes:
+   - Refer to the properties file in [inji-config](https://github.com/mosip/inji-config) that corresponds to the postgres plugin implementation.
         [Certify Postgres Land Registry](https://github.com/mosip/inji-config/blob/develop/certify-postgres-landregistry.properties)
-    * The value for the property `mosip.certify.integration.data-provider-plugin` must be set to `PostgresDataProviderPlugin`
-    * Refer to the below property for setting the query value against the scope for the credential that is to be issued:
+   - The value for the property `mosip.certify.integration.data-provider-plugin` must be set to `PostgresDataProviderPlugin`
+   - Refer to the below property for setting the query value against the scope for the credential that is to be issued:
       mosip.certify.data-provider-plugin.postgres.scope-query-mapping={
         `credential_scope`: `select * from certify.<table_name> where <table_id>=:id`
       }
-    * Add the scope defined above and the type of credential in the well-known config of the properties file. Refer to the property `mosip.certify.key-values` for the same.
-    * Add the fields from the respective table in the well-known config.
+   - Add the scope defined above and the type of credential in the well-known config of the properties file. Refer to the property `mosip.certify.key-values` for the same.
+   - Add the fields from the respective table in the well-known config.
 
-* mosip-config changes:
-    * Refer to the [esignet-mock](https://github.com/mosip/mosip-config/pull/7653) properties file in mosip-config repo.
-    * Add the required scopes under `mosip.esignet.supported.credential.scopes` config.
-    * Also add the scopes under `mosip.esignet.credential.scope-resource-mapping` config.
+5. mosip-config changes:
+   - Refer to the [esignet-mock](https://github.com/mosip/mosip-config/pull/7653) properties file in mosip-config repo.
+   - Add the required scopes under `mosip.esignet.supported.credential.scopes` config.
+   - Also add the scopes under `mosip.esignet.credential.scope-resource-mapping` config.
