@@ -218,7 +218,7 @@ Execute installation script
 - Pre-requisites
   1. Authorisation Provider should expose the unique identifier in the `sub` field of the JWT token. 
   Eg. If one is using eSignet with mock-identity-system:0.10.0 and above it can be achieved by setting: 
-     ```mosip.mock.ida.kyc.psut.field=individualId=individualId``` 
+     ```mosip.mock.ida.kyc.psut.field=individualId``` 
      where individualId will be the identifier to locate the identity in the expected identity registry.
 
 1. Create the tables with all the fields that should be returned by the Postgres Data Provider Plugin within the certify postgres database.
@@ -228,7 +228,7 @@ Execute installation script
                 attribute_1 <type> NOT NULL,
                 attribute_2 <type> NOT NULL,
                 ...
-                CONSTRAINT pk_reg_id_code PRIMARY KEY (registration_id)
+                CONSTRAINT pk_id_code PRIMARY KEY (<identifier>)
             );
      ```
 
@@ -274,7 +274,7 @@ Execute installation script
               "expirationDate": "${validUntil}",
               "credentialSubject": {
                   "attributeName1": "${<attribute1>}",
-                  "attributeName2": "${<attribue2>}"
+                  "attributeName2": "${<attribute2>}"
                   ...
               }
             }
@@ -286,9 +286,11 @@ Execute installation script
         [Certify Postgres Land Registry](https://github.com/mosip/inji-config/blob/develop/certify-postgres-landregistry.properties)
    - The value for the property `mosip.certify.integration.data-provider-plugin` must be set to `PostgresDataProviderPlugin`
    - Refer to the below property for setting the query value against the scope for the credential that is to be issued:
-      mosip.certify.data-provider-plugin.postgres.scope-query-mapping={
+      ```
+     mosip.certify.data-provider-plugin.postgres.scope-query-mapping={
         `credential_scope`: `select * from certify.<table_name> where <table_id>=:id`
       }
+     ```
    - Add the scope defined above and the type of credential in the well-known config of the properties file. Refer to the property `mosip.certify.key-values` for the same.
    - Add the fields from the respective table in the well-known config.
 
