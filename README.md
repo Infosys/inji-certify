@@ -222,7 +222,7 @@ Execute installation script
      where individualId will be the identifier to locate the identity in the expected identity registry.
 
 1. Create the tables with all the fields that should be returned by the Postgres Data Provider Plugin within the certify postgres database.
-    Refer the following query for insertion in DB:
+   - Refer the following query for insertion in DB:
      ```
        CREATE TABLE certify.<table_name> (
                 attribute_1 <type> NOT NULL,
