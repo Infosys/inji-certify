@@ -15,7 +15,7 @@ COMMENT ON COLUMN svg_template.template IS 'SVG Template Content: SVG Render Ima
 COMMENT ON COLUMN svg_template.cr_dtimes IS 'Date when the template was inserted in table.';
 COMMENT ON COLUMN svg_template.upd_dtimes IS 'Date when the template was last updated in table.';
 
-CREATE TABLE IF NOT EXISTS template_data(
+CREATE TABLE template_data(
 	context character varying(1024) NOT NULL,
 	credential_type character varying(512) NOT NULL,
 	template VARCHAR NOT NULL,
