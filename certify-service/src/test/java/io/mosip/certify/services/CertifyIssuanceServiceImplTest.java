@@ -25,6 +25,7 @@ import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.credential.CredentialFactory;
 import io.mosip.certify.credential.SDJWT; // Implementation
 import io.mosip.certify.credential.W3cJsonLd; // Implementation
+import io.mosip.certify.enums.SignatureCryptoSuite;
 import io.mosip.certify.exception.InvalidNonceException;
 import io.mosip.certify.proof.ProofValidator;
 
@@ -245,7 +246,7 @@ public class CertifyIssuanceServiceImplTest {
         when(vcFormatter.getAppID(anyString())).thenReturn("testAppIdLdp");   // Example value
         when(vcFormatter.getRefID(anyString())).thenReturn("testRefIdLdp");   // Example value
         when(vcFormatter.getDidUrl(anyString())).thenReturn("did:example:ldp"); // Example value
-        when(vcFormatter.getSignatureCryptoSuite(anyString())).thenReturn("testSignatureCryptoSuite"); // Example Value
+        when(vcFormatter.getSignatureCryptoSuite(anyString())).thenReturn(SignatureCryptoSuite.ED25519_SIGNATURE_2020); // Example Value
 
         // Corrected declaration of mockVcResultLdp
         VCResult mockVcResultLdp = new VCResult<JsonLDObject>();
@@ -445,7 +446,7 @@ public class CertifyIssuanceServiceImplTest {
         when(vcFormatter.getAppID(anyString())).thenReturn("testAppId");       // Example value
         when(vcFormatter.getRefID(anyString())).thenReturn("testRefId");       // Example value
         when(vcFormatter.getDidUrl(anyString())).thenReturn("did:example:123"); // Example value
-        when(vcFormatter.getSignatureCryptoSuite(anyString())).thenReturn("testSignatureCryptoSuite"); // Example Value
+        when(vcFormatter.getSignatureCryptoSuite(anyString())).thenReturn(SignatureCryptoSuite.ED25519_SIGNATURE_2020); // Example Value
 
         when(mockSdJwt.addProof(
                 eq("{\"unsigned\":\"sdjwt_payload\"}"), // unsignedCredential

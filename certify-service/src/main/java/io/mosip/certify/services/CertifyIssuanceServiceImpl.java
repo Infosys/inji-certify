@@ -18,10 +18,9 @@ import io.mosip.certify.config.IndexedAttributesConfig;
 import io.mosip.certify.core.constants.VCDM2Constants;
 import io.mosip.certify.core.dto.*;
 import io.mosip.certify.core.spi.CredentialConfigurationService;
-//import io.mosip.certify.entity.CredentialStatusPurpose;
-import io.mosip.certify.entity.CredentialConfig;
 import io.mosip.certify.entity.Ledger;
 import io.mosip.certify.entity.StatusListCredential;
+import io.mosip.certify.enums.CredentialStatusPurpose;
 import io.mosip.certify.repository.LedgerRepository;
 import io.mosip.certify.repository.StatusListCredentialRepository;
 import io.mosip.certify.utils.VCIssuanceUtil;
@@ -254,9 +253,9 @@ public class CertifyIssuanceServiceImpl implements VCIssuanceService {
                     templateParams.put(Constants.TEMPLATE_NAME, templateName);
                     templateParams.put(Constants.DID_URL, didUrl);
                     jsonObject.put("type", credentialRequest.getCredential_definition().getType());
-                    CredentialConfig.CredentialStatusPurpose credentialStatusPurpose = vcFormatter.getCredentialStatusPurpose(templateName);
+                    CredentialStatusPurpose credentialStatusPurpose = vcFormatter.getCredentialStatusPurpose(templateName);
                     if (credentialStatusPurpose != null) {
-                        addCredentialStatus(jsonObject, credentialStatusPurpose.name().toLowerCase());
+                        addCredentialStatus(jsonObject, credentialStatusPurpose.toString());
                     }
                     if (!StringUtils.isEmpty(renderTemplateId)) {
                         templateParams.put(Constants.RENDERING_TEMPLATE_ID, renderTemplateId);
@@ -266,7 +265,7 @@ public class CertifyIssuanceServiceImpl implements VCIssuanceService {
                     templateParams.putAll(jsonObject.toMap());
                     String unsignedCredential=cred.createCredential(templateParams, templateName);
                     jsonObject.remove(VCDM2Constants.CREDENTIAL_STATUS);
-                    return cred.addProof(unsignedCredential,"", vcFormatter.getProofAlgorithm(templateName), vcFormatter.getAppID(templateName), vcFormatter.getRefID(templateName),vcFormatter.getDidUrl(templateName), vcFormatter.getSignatureCryptoSuite(templateName));
+                    return cred.addProof(unsignedCredential,"", vcFormatter.getProofAlgorithm(templateName), vcFormatter.getAppID(templateName), vcFormatter.getRefID(templateName),vcFormatter.getDidUrl(templateName), vcFormatter.getSignatureCryptoSuite(templateName).toString());
                 } catch(DataProviderExchangeException e) {
                     throw new CertifyException(e.getErrorCode());
                 } catch (JSONException e) {
@@ -294,7 +293,7 @@ public class CertifyIssuanceServiceImpl implements VCIssuanceService {
                     templateParams.put("_cnf", Map.of("kid", holderId));
                     templateParams.put("_iss", certifyIssuer);
                     String unsignedCredential=cred.createCredential(templateParams, templateName);
-                    return cred.addProof(unsignedCredential,"", vcFormatter.getProofAlgorithm(templateName), vcFormatter.getAppID(templateName), vcFormatter.getRefID(templateName),vcFormatter.getDidUrl(templateName), vcFormatter.getSignatureCryptoSuite(templateName));
+                    return cred.addProof(unsignedCredential,"", vcFormatter.getProofAlgorithm(templateName), vcFormatter.getAppID(templateName), vcFormatter.getRefID(templateName),vcFormatter.getDidUrl(templateName), vcFormatter.getSignatureCryptoSuite(templateName).toString());
                 } catch(DataProviderExchangeException e) {
                     log.error("Error processing the SD-JWT :", e);
                     throw new CertifyException(ErrorConstants.VC_ISSUANCE_FAILED);

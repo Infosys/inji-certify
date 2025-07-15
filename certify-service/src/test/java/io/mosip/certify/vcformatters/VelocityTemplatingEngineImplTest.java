@@ -8,11 +8,13 @@ import io.mosip.certify.core.constants.ErrorConstants;
 import io.mosip.certify.core.constants.VCDM2Constants;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.entity.TemplateId; // Import TemplateId
+import io.mosip.certify.enums.SignatureCryptoSuite;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 
 import static io.mosip.certify.core.constants.Constants.DELIMITER;
+import static io.mosip.certify.core.constants.Constants.SIGNATURE_CRYPTO_SUITE;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
@@ -98,7 +100,7 @@ public class VelocityTemplatingEngineImplTest {
                             }
                         }
                 """,
-                vc2Type, vc2Context, vc2Format, "did:example:issuer2", "appId2", "refId2", "EdDSA", "$.phone", "testCryptoSuite"
+                vc2Type, vc2Context, vc2Format, "did:example:issuer2", "appId2", "refId2", "EdDSA", "$.phone", SignatureCryptoSuite.ED25519_SIGNATURE_2020
         );
 
         // vc3 definition - with quotes fixed for string template variables
@@ -131,7 +133,7 @@ public class VelocityTemplatingEngineImplTest {
                             }
                         }
                 """,
-                vc3Type, vc3Context, vc3Format, "did:example:issuer3", "appId3", "refId3", "EdDSA", null, "testCryptoSuite"
+                vc3Type, vc3Context, vc3Format, "did:example:issuer3", "appId3", "refId3", "EdDSA", null, SignatureCryptoSuite.ED25519_SIGNATURE_2020
         );
 
 
@@ -142,7 +144,7 @@ public class VelocityTemplatingEngineImplTest {
         vc4TemplateKey = vc4Type + DELIMITER + vc4Context + DELIMITER + vc4Format;
         vc4TemplateIdObject = new TemplateId(vc4Context, vc4Type, vc4Format);
         vc4 = initTemplate(null,
-                vc4Type, vc4Context, vc4Format, "did:example:issuer4", "appId4", "refId4", "RSA", null, "testCryptoSuite"
+                vc4Type, vc4Context, vc4Format, "did:example:issuer4", "appId4", "refId4", "RSA", null, SignatureCryptoSuite.ED25519_SIGNATURE_2020
         );
 
 
@@ -163,7 +165,7 @@ public class VelocityTemplatingEngineImplTest {
         formatter.initialize(); // Initializes VelocityEngine
     }
 
-    private CredentialConfig initTemplate(String template, String type, String context, String format, String didUrl, String keyManagerAppId, String keyManagerRefId, String signatureAlgo, String sdClaim, String signatureCryptoSuite) {
+    private CredentialConfig initTemplate(String template, String type, String context, String format, String didUrl, String keyManagerAppId, String keyManagerRefId, String signatureAlgo, String sdClaim, SignatureCryptoSuite signatureCryptoSuite) {
         CredentialConfig t = new CredentialConfig();
         if(template != null) {
             template = Base64.getEncoder().encodeToString(template.getBytes());
@@ -358,7 +360,7 @@ public class VelocityTemplatingEngineImplTest {
     @Test
     public void testGetSignatureCryptoSuite() {
         // Uses vc2 by default
-        String expected = vc2.getSignatureCryptoSuite();
+        SignatureCryptoSuite expected = vc2.getSignatureCryptoSuite();
         Assert.assertEquals(expected, formatter.getSignatureCryptoSuite(vc2TemplateKey));
     }
 

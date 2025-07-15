@@ -17,13 +17,15 @@ public interface CredentialConfigMapper {
     @Mapping(target = "updatedTimes", ignore = true)
     @Mapping(target = "context", source = "context", qualifiedByName = "listToCommaSeparatedString")
     @Mapping(target = "credentialType", source = "credentialType", qualifiedByName = "listToCommaSeparatedString")
-    @Mapping(target = "credentialStatusPurpose", ignore = true)
+    @Mapping(target = "credentialStatusPurpose", expression = "java(dto.getCredentialStatusPurpose() != null ? io.mosip.certify.enums.CredentialStatusPurpose.fromString(dto.getCredentialStatusPurpose()) : null)")
+    @Mapping(target = "signatureCryptoSuite", expression = "java(dto.getSignatureCryptoSuite() != null ? io.mosip.certify.enums.SignatureCryptoSuite.fromString(dto.getSignatureCryptoSuite()) : null)")
     CredentialConfig toEntity(CredentialConfigurationDTO dto);
 
     // Convert Entity to DTO
     @Mapping(target = "context", source = "context", qualifiedByName = "commaSeparatedStringToList")
     @Mapping(target = "credentialType", source = "credentialType", qualifiedByName = "commaSeparatedStringToList")
-    @Mapping(target = "credentialStatusPurpose", ignore = true)
+    @Mapping(target = "credentialStatusPurpose", expression = "java(entity.getCredentialStatusPurpose() != null ? entity.getCredentialStatusPurpose().toString() : null)")
+    @Mapping(target = "signatureCryptoSuite", expression = "java(entity.getSignatureCryptoSuite() != null ? entity.getSignatureCryptoSuite().toString() : null)")
     CredentialConfigurationDTO toDto(CredentialConfig entity);
 
     // Update existing entity with DTO data
@@ -33,7 +35,8 @@ public interface CredentialConfigMapper {
     @Mapping(target = "updatedTimes", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "context", source = "context", qualifiedByName = "listToCommaSeparatedString")
     @Mapping(target = "credentialType", source = "credentialType", qualifiedByName = "listToCommaSeparatedString")
-    @Mapping(target = "credentialStatusPurpose", ignore = true)
+    @Mapping(target = "credentialStatusPurpose", expression = "java(dto.getCredentialStatusPurpose() != null ? io.mosip.certify.enums.CredentialStatusPurpose.fromString(dto.getCredentialStatusPurpose()) : null)")
+    @Mapping(target = "signatureCryptoSuite", expression = "java(dto.getSignatureCryptoSuite() != null ? io.mosip.certify.enums.SignatureCryptoSuite.fromString(dto.getSignatureCryptoSuite()) : null)")
     void updateEntityFromDto(CredentialConfigurationDTO dto, @MappingTarget CredentialConfig entity);
 
     @Named("listToCommaSeparatedString")

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import io.mosip.certify.enums.CredentialStatusPurpose;
+import io.mosip.certify.enums.SignatureCryptoSuite;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -55,7 +57,9 @@ public class CredentialConfig {
     private String signatureAlgo; //Can be called as Proof algorithm
 
     @Comment("This is the crypto suite used for VC signature or proof generation")
-    private String signatureCryptoSuite;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "signature_crypto_suite", nullable = true)
+    private SignatureCryptoSuite signatureCryptoSuite;
 
     @Comment("This is a comma seperated list for selective disclosure.")
     private String sdClaim;
@@ -117,9 +121,4 @@ public class CredentialConfig {
 
     @Column(name = "upd_dtimes")
     private LocalDateTime updatedTimes;
-
-    public enum CredentialStatusPurpose {
-        REVOCATION,
-        SUSPENSION
-    }
 }

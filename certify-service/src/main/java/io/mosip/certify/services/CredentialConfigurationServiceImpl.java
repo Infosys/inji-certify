@@ -9,7 +9,6 @@ import com.danubetech.dataintegrity.suites.DataIntegrityProofDataIntegritySuite;
 import com.danubetech.dataintegrity.suites.DataIntegritySuites;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.certify.core.constants.Constants;
-import io.mosip.certify.core.constants.ErrorConstants;
 import io.mosip.certify.core.constants.VCDM2Constants;
 import io.mosip.certify.core.constants.VCFormats;
 import io.mosip.certify.core.dto.*;
@@ -17,6 +16,8 @@ import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.core.exception.CredentialConfigException;
 import io.mosip.certify.core.spi.CredentialConfigurationService;
 import io.mosip.certify.entity.CredentialConfig;
+import io.mosip.certify.enums.CredentialStatusPurpose;
+import io.mosip.certify.enums.SignatureCryptoSuite;
 import io.mosip.certify.mapper.CredentialConfigMapper;
 import io.mosip.certify.repository.CredentialConfigRepository;
 import io.mosip.certify.validators.credentialconfigvalidators.LdpVcCredentialConfigValidator;
@@ -70,13 +71,13 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
         credentialConfig.setStatus(Constants.ACTIVE);
 
         if(pluginMode.equals("DataProvider") && (credentialConfig.getVcTemplate() == null || credentialConfig.getVcTemplate().isEmpty() ||
-                credentialConfig.getSignatureCryptoSuite() == null || credentialConfig.getSignatureCryptoSuite().isEmpty())) {
+                credentialConfig.getSignatureCryptoSuite() == null)) {
             throw new CertifyException("Credential Template and VC Sign Crypto Suite is mandatory for the DataProvider plugin issuer.");
         }
 
         if(credentialConfig.getCredentialFormat().equals(VCFormats.LDP_VC)) {
-            String signatureCryptoSuite = credentialConfig.getSignatureCryptoSuite();
-            if (!CertifyIssuanceServiceImpl.keyChooser.containsKey(signatureCryptoSuite)) {
+            SignatureCryptoSuite signatureCryptoSuite = credentialConfig.getSignatureCryptoSuite();
+            if (!CertifyIssuanceServiceImpl.keyChooser.containsKey(signatureCryptoSuite.toString())) {
                 DataIntegrityProofDataIntegritySuite dataIntegrityProofDataIntegritySuite = DataIntegritySuites.DATA_INTEGRITY_SUITE_DATAINTEGRITYPROOF;
                 List<String> signatureCryptoSuitesByJwsAlgo = dataIntegrityProofDataIntegritySuite.findCryptosuitesForJwsAlgorithm(credentialConfig.getSignatureAlgo());
 
@@ -87,13 +88,6 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
                 if (!signatureCryptoSuitesByJwsAlgo.contains(credentialConfig.getSignatureCryptoSuite())) {
                     throw new CertifyException("Signature crypto suite " + credentialConfig.getSignatureCryptoSuite() +
                             " is not supported for the signature algorithm: " + credentialConfig.getSignatureAlgo());
-                }
-            }
-
-            // To ensure that credential status is enabled for DM 2.0 VCs
-            if(credentialConfig.getContext().contains(VCDM2Constants.URL)) {
-                if(credentialConfigurationDTO.getCredentialStatusPurpose() != null) {
-                    credentialConfig.setCredentialStatusPurpose(CredentialConfig.CredentialStatusPurpose.valueOf(credentialConfigurationDTO.getCredentialStatusPurpose().toUpperCase()));
                 }
             }
         }

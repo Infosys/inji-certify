@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.mosip.certify.enums.CredentialStatusPurpose;
+import io.mosip.certify.enums.SignatureCryptoSuite;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -186,12 +188,12 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
      * @return the crypto suite used for VC signature or proof generation
      */
     @Override
-    public String getSignatureCryptoSuite(String templateName) {
+    public SignatureCryptoSuite getSignatureCryptoSuite(String templateName) {
         return getCachedCredentialConfig(templateName).getSignatureCryptoSuite(); // NEW
     }
 
     @Override
-    public CredentialConfig.CredentialStatusPurpose getCredentialStatusPurpose(String templateName) {
+    public CredentialStatusPurpose getCredentialStatusPurpose(String templateName) {
         return getCachedCredentialConfig(templateName).getCredentialStatusPurpose();
     }
 
