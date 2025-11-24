@@ -285,6 +285,12 @@ The digest multibase can be hardcoded or if the template has been stored with Ce
    ```
    Then re-run `docker compose up -d`.
 
+8. While running `docker compose up -d`, if any error is encountered related to network like `network mosip_network declared as external, but could not be found` and containers are not starting up properly, try to create the network manually using the command:
+   ```bash
+   docker network create mosip_network
+   ```
+   Then re-run `docker compose up -d`.
+
 
 # Explanation of NGINX Directives
 
