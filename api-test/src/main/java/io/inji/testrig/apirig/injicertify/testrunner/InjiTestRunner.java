@@ -131,8 +131,11 @@ public class InjiTestRunner {
 				// Generate device certificates to be consumed by Mock-MDS
 				PartnerRegistration.deleteCertificates();
 				PartnerRegistration.deviceGeneration();
-
+				
+				// Generating biometric details with mock MDS
+				BaseTestCase.domain=".mosip.net";
 				BiometricDataProvider.generateBiometricTestData("Registration");
+				BaseTestCase.domain = System.getProperty("env.endpoint", "localhost").replaceFirst("^https?://", "").replaceAll("/$", "");
 
 				startTestRunner();
 
