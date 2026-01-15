@@ -185,7 +185,7 @@ public class JwksServiceImpl implements JwksService {
             ASN1Sequence seq = (ASN1Sequence) asn1In.readObject();
             if (seq.size() != 2) return null;
 
-            DERBitString bitString = DERBitString.getInstance(seq.getObjectAt(1));
+            DERBitString bitString = (DERBitString) DERBitString.getInstance(seq.getObjectAt(1));
             if (bitString.getBytes().length != 32 || bitString.getPadBits() != 0) return null;
 
             return bitString.getBytes();  // Raw 32-byte Ed25519 public key
