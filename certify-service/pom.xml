@@ -232,6 +232,19 @@
             <scope>compile</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.mosip.certify/mock-certify-plugin -->
+        <!-- BouncyCastle Core Provider -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
+
+        <!-- BouncyCastle PKIX/ASN.1 (for ASN1InputStream) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
     </dependencies>
 
     <build>
