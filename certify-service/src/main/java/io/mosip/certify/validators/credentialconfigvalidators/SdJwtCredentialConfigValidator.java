@@ -15,6 +15,12 @@ import java.util.Optional;
 
 @Slf4j
 public class SdJwtCredentialConfigValidator {
+    private static final Set<String> VC_METADATA_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "issuer", "issuanceDate", "expirationDate", "validFrom", "validUntil",
+            "@context", "type", "id", "proof", "vct", "iss", "iat", "exp", "jti",
+            "sub", "cnf", "_issuer"
+    )));
+
     public static boolean isValidCheck(CredentialConfigurationDTO credentialConfig) {
         return credentialConfig.getSdJwtVct() != null && !credentialConfig.getSdJwtVct().isEmpty()
                 && credentialConfig.getSignatureAlgo() != null && !credentialConfig.getSignatureAlgo().isEmpty()
@@ -63,11 +69,6 @@ public class SdJwtCredentialConfigValidator {
             org.json.JSONObject templateJson = new org.json.JSONObject(sanitizedTemplate);
 
             Set<String> templateFields = new HashSet<>();
-            Set<String> metadataKeys = new HashSet<>(Arrays.asList(
-                    "issuer", "issuanceDate", "expirationDate", "validFrom", "validUntil",
-                    "@context", "type", "id", "proof", "vct", "iss", "iat", "exp", "jti",
-                    "sub", "cnf", "_issuer"
-            ));
 
             if (templateJson.has("credentialSubject")) {
                 org.json.JSONObject credentialSubject = templateJson.getJSONObject("credentialSubject");
@@ -76,7 +77,7 @@ public class SdJwtCredentialConfigValidator {
             } else {
                 // Flat template — fields are at root level; exclude known metadata keys
                 for (String key : templateJson.keySet()) {
-                    if (!metadataKeys.contains(key)) {
+                    if (!VC_METADATA_KEYS.contains(key)) {
                         templateFields.add(key);
                     }
                 }
@@ -88,7 +89,7 @@ public class SdJwtCredentialConfigValidator {
 
             if (!invalidClaims.isEmpty()) {
                 throw new CertifyException(ErrorConstants.INVALID_SD_JWT_CLAIMS,
-                        "The following sdJwtClaims are not present in the vcTemplate credentialSubject: " + invalidClaims);
+                        "The following sdJwtClaims are not present in the vcTemplate: " + invalidClaims);
             }
         } catch (CertifyException e) {
             throw e;
@@ -99,8 +100,6 @@ public class SdJwtCredentialConfigValidator {
         }
     }
 
-
-}
     public static boolean isConfigAlreadyPresentV2(CredentialConfigurationDTOV2 credentialConfig,
                                                    CredentialConfigRepository credentialConfigRepository) {
         Optional<CredentialConfig> optional =
