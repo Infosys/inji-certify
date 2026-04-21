@@ -40,13 +40,13 @@ public class QrSettingsDeserializer extends JsonDeserializer<List<Map<String, Ob
     private Map<String, Object> deserializeMapWithDuplicateCheck(JsonParser p, DeserializationContext ctxt) throws IOException {
         Map<String, Object> map = new LinkedHashMap<>();
         Set<String> seenKeys = new HashSet<>();
+        List<String> duplicateKeys = new ArrayList<>();
 
         while (p.nextToken() != JsonToken.END_OBJECT) {
             String fieldName = p.currentName();
 
             if (!seenKeys.add(fieldName)) {
-                throw new CertifyException(ErrorConstants.QR_DUPLICATE_LABELS,
-                        "Duplicate fields detected inside qrSettings.");
+                duplicateKeys.add(fieldName);
             }
 
             JsonToken valueToken = p.nextToken();
@@ -57,6 +57,11 @@ public class QrSettingsDeserializer extends JsonDeserializer<List<Map<String, Ob
                 value = p.readValueAs(Object.class);
             }
             map.put(fieldName, value);
+        }
+
+        if (!duplicateKeys.isEmpty()) {
+            throw new CertifyException(ErrorConstants.QR_DUPLICATE_LABELS,
+                    "Duplicate fields " + duplicateKeys + " detected inside qrSettings.");
         }
 
         return map;
