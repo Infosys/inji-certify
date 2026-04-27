@@ -29,8 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.util.StringUtils;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -78,8 +76,6 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
 
 
     private static final String CREDENTIAL_CONFIG_CACHE_NAME = "credentialConfig";
-
-    private static final Pattern VELOCITY_VAR_PATTERN = Pattern.compile("\\$\\{([^}]{1,256})}");
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -233,7 +229,7 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
                     "qrSettings is not supported for " + credentialFormat + " format.");
         }
         if (qrSignatureAlgo != null && !qrSignatureAlgo.isEmpty()) {
-            throw new CertifyException(ErrorConstants.QR_SIGNATURE_ALGO_NOT_ALLOWED,
+            throw new CertifyException(ErrorConstants.QR_SETTINGS_NOT_SUPPORTED,
                     "qrSignatureAlgo is not supported for " + credentialFormat + " format.");
         }
     }
@@ -287,13 +283,25 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
     private void extractVariablesFromMap(Map<String, Object> map, Set<String> variables) {
         for (Object value : map.values()) {
             if (value instanceof String) {
-                Matcher matcher = VELOCITY_VAR_PATTERN.matcher((String) value);
-                while (matcher.find()) {
-                    variables.add(matcher.group(1));
-                }
+                extractVariablesFromString((String) value, variables);
             } else if (value instanceof Map) {
                 extractVariablesFromMap((Map<String, Object>) value, variables);
             }
+        }
+    }
+
+    private void extractVariablesFromString(String value, Set<String> variables) {
+        int index = 0;
+        while ((index = value.indexOf("${", index)) != -1) {
+            int end = value.indexOf('}', index + 2);
+            if (end == -1) {
+                break;
+            }
+            String varName = value.substring(index + 2, end).trim();
+            if (!varName.isEmpty() && varName.length() <= 100) {
+                variables.add(varName);
+            }
+            index = end + 1;
         }
     }
 
