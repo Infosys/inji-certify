@@ -60,26 +60,20 @@ public class SdJwtCredentialConfigValidator {
 
             // First replace quoted placeholders like "${field}" → "__placeholder__"
             String sanitizedTemplate = decodedTemplate
-                    .replaceAll("\"\\$\\{[^}]+\\}\"", "\"__placeholder__\"");
+                    .replaceAll("\"[^\"]{0,512}\\$\\{[^}]{1,256}\\}[^\"]{0,512}\"", "\"__placeholder__\"");
 
             // Then replace unquoted placeholders like ${field} → "__placeholder__"
             sanitizedTemplate = sanitizedTemplate
-                    .replaceAll("\\$\\{[^}]+\\}", "\"__placeholder__\"");
+                    .replaceAll("(?<=[:\\[,])\\s*\\$\\{[^}]{1,256}\\}\\s*(?=[,}\\]])", "\"__placeholder__\"");
 
             org.json.JSONObject templateJson = new org.json.JSONObject(sanitizedTemplate);
 
             Set<String> templateFields = new HashSet<>();
 
-            if (templateJson.has("credentialSubject")) {
-                org.json.JSONObject credentialSubject = templateJson.getJSONObject("credentialSubject");
-                templateFields.addAll(credentialSubject.keySet());
-                templateFields.remove("id");
-            } else {
-                // Flat template — fields are at root level; exclude known metadata keys
-                for (String key : templateJson.keySet()) {
-                    if (!VC_METADATA_KEYS.contains(key)) {
-                        templateFields.add(key);
-                    }
+            // Flat template — fields are at root level; exclude known metadata keys
+            for (String key : templateJson.keySet()) {
+                if (!VC_METADATA_KEYS.contains(key)) {
+                    templateFields.add(key);
                 }
             }
 
