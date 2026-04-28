@@ -713,8 +713,8 @@ public class CredentialConfigurationSupportedServiceImplTest {
     }
 
     @Test
-    public void validateCredentialConfigurationV2_QrSignatureAlgoWithoutSignatureAlgo_ThrowsException() {
-        CredentialConfigurationDTOV2 dto = new CredentialConfigurationDTOV2();
+    public void validateCredentialConfiguration_QrSignatureAlgoWithoutSignatureAlgo_ThrowsException() {
+        CredentialConfigurationDTO dto = new CredentialConfigurationDTO();
         dto.setCredentialFormat("ldp_vc");
         dto.setVcTemplate("test_template");
         dto.setQrSettings(List.of(Map.of("key", "value")));
@@ -723,9 +723,9 @@ public class CredentialConfigurationSupportedServiceImplTest {
         ReflectionTestUtils.setField(credentialConfigurationService, "pluginMode", "DataProvider");
         ReflectionTestUtils.setField(credentialConfigurationService, "keyAliasMapper", Map.of("EdDSA", List.of(List.of("TEST2019", "TEST2019-REF"))));
         try (var mocked = org.mockito.Mockito.mockStatic(LdpVcCredentialConfigValidator.class)) {
-            mocked.when(() -> LdpVcCredentialConfigValidator.isValidCheckV2(dto)).thenReturn(true);
+            mocked.when(() -> LdpVcCredentialConfigValidator.isValidCheck(dto)).thenReturn(true);
             CertifyException ex = assertThrows(CertifyException.class, () ->
-                    ReflectionTestUtils.invokeMethod(credentialConfigurationService, "validateCredentialConfigurationV2", dto, true)
+                    ReflectionTestUtils.invokeMethod(credentialConfigurationService, "validateCredentialConfiguration", dto, true)
             );
             assertEquals("qr_signature_algo_requires_signature_algo", ex.getErrorCode());
         }
