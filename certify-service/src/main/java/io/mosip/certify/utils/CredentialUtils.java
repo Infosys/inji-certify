@@ -131,20 +131,8 @@ public class CredentialUtils {
             } else if (value instanceof String){
                 // entities which need to be quoted
                 finalTemplate.put(key, JSONObject.wrap(value));
-            } else if (value instanceof Map<?,?>) {
+            } else if( value instanceof Map<?,?>) {
                 finalTemplate.put(key,JSONObject.wrap(value));
-//                Map<String, Object> nestedMap = (Map<String, Object>) value;
-//                // Check if it's a language map (all values are Strings → e.g., {"en": "Farm", "pt": "Fazenda"})
-//                boolean isLanguageMap = nestedMap.values().stream().allMatch(v -> v instanceof String);
-//                if (isLanguageMap) {
-//                    // Preserve the language map as a JSONObject directly
-//                    JSONObject langObj = new JSONObject();
-//                    nestedMap.forEach((k, v) -> langObj.put(k, v.toString()));
-//                    finalTemplate.put(key, langObj);
-//                } else {
-//                    // Recurse for nested complex objects
-//                    finalTemplate.put(key, new JSONObject(toJsonMap(nestedMap)));
-//                }
             }
             else {
                 // no conversion needed

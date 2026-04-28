@@ -340,6 +340,7 @@ class SdJwtCredentialConfigValidatorTest {
         assertTrue(ex.getMessage().contains("nonExistentField"));
     }
 
+}
     void testIsValidCheckV2_validConfig_returnsTrue() {
         CredentialConfigurationDTOV2 config = new CredentialConfigurationDTOV2();
         config.setSdJwtVct("vctValue");

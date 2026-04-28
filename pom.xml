@@ -67,17 +67,6 @@
 			<id>danubetech-maven-public</id>
 			<url>https://repo.danubetech.com/repository/maven-public/</url>
 		</repository>
-        <repository>
-            <id>gcs-maven-central-mirror</id>
-            <name>GCS Maven Central mirror</name>
-            <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
 	</repositories>
 
 	<distributionManagement>
