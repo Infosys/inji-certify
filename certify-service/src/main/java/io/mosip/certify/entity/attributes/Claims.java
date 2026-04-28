@@ -10,8 +10,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClaimsDisplayFieldsConfigs implements Serializable {
+public class Claims implements Serializable {
     private List<Display> display;
+    private boolean mandatory;
 
     @Data
     @NoArgsConstructor
