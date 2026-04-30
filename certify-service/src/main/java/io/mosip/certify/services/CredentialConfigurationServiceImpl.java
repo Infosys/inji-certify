@@ -141,6 +141,7 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
                 if(shouldCheckDuplicate && MsoMdocCredentialConfigValidator.isConfigAlreadyPresent(credentialConfig, credentialConfigRepository)) {
                     throw new CertifyException(ErrorConstants.MSO_MDOC_CONFIG_EXISTS, "Configuration already exists for the specified doctype.");
                 }
+                rejectQrSettingsIfPresent(credentialConfig.getQrSettings(), credentialConfig.getQrSignatureAlgo(), credentialConfig.getCredentialFormat());
                 break;
             case VCFormats.DC_SD_JWT:
                 if (!SdJwtCredentialConfigValidator.isValidCheck(credentialConfig)) {
@@ -182,78 +183,6 @@ public class CredentialConfigurationServiceImpl implements CredentialConfigurati
                     "qrSignatureAlgo is not supported for " + credentialFormat + " format.");
         }
     }
-
-    private void validateQrSettingsFromVcTemplate(List<Map<String, Object>> qrSettings, String vcTemplate) {
-        if (qrSettings == null || qrSettings.isEmpty() || vcTemplate == null || vcTemplate.isEmpty()) {
-            return;
-        }
-        Set<String> referencedVars = extractVelocityVariables(qrSettings);
-        if (referencedVars.isEmpty()) {
-            return;
-        }
-        Set<String> validFields = extractFieldNamesFromVcTemplate(vcTemplate);
-        Set<String> invalidRefs = new HashSet<>(referencedVars);
-        invalidRefs.removeAll(validFields);
-        if (!invalidRefs.isEmpty()) {
-            throw new CertifyException(ErrorConstants.QR_INVALID_FIELD_REFERENCE,
-                    "qrSettings references fields not present in the VC schema: " + invalidRefs);
-        }
-    }
-
-    private Set<String> extractFieldNamesFromVcTemplate(String vcTemplateBase64) {
-        try {
-            String decoded = new String(Base64.getDecoder().decode(vcTemplateBase64));
-            JsonNode root = objectMapper.readTree(decoded);
-
-            JsonNode credentialSubject = root.get("credentialSubject");
-            if (credentialSubject == null || !credentialSubject.isObject()) {
-                throw new CertifyException(ErrorConstants.INVALID_REQUEST, "vcTemplate must contain a credentialSubject object.");
-            }
-            Set<String> fields = new HashSet<>();
-            credentialSubject.fieldNames().forEachRemaining(fields::add);
-            fields.remove("id");
-            return fields;
-        } catch (CertifyException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CertifyException(ErrorConstants.INVALID_REQUEST, "Failed to decode or parse vcTemplate: " + e.getMessage());
-        }
-    }
-
-    private Set<String> extractVelocityVariables(List<Map<String, Object>> qrSettings) {
-        Set<String> variables = new HashSet<>();
-        for (Map<String, Object> block : qrSettings) {
-            extractVariablesFromMap(block, variables);
-        }
-        return variables;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void extractVariablesFromMap(Map<String, Object> map, Set<String> variables) {
-        for (Object value : map.values()) {
-            if (value instanceof String) {
-                extractVariablesFromString((String) value, variables);
-            } else if (value instanceof Map) {
-                extractVariablesFromMap((Map<String, Object>) value, variables);
-            }
-        }
-    }
-
-    private void extractVariablesFromString(String value, Set<String> variables) {
-        int index = 0;
-        while ((index = value.indexOf("${", index)) != -1) {
-            int end = value.indexOf('}', index + 2);
-            if (end == -1) {
-                break;
-            }
-            String varName = value.substring(index + 2, end).trim();
-            if (!varName.isEmpty() && varName.length() <= 100) {
-                variables.add(varName);
-            }
-            index = end + 1;
-        }
-    }
-
 
     private void validateKeyAliasMapperConfiguration(CredentialConfigurationDTO credentialConfig) {
         if(pluginMode.equals("VCIssuance")) {
