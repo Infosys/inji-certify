@@ -12,6 +12,7 @@ public class ErrorConstants {
     public static final String INVALID_AUTH_TOKEN = "invalid_token";
     public static final String INVALID_ALGORITHM = "invalid_algorithm";
     public static final String UNKNOWN_ERROR = "unknown_error";
+    public static final String CREDENTIAL_NOT_FOUND = "credential_not_found";
     public static final String INVALID_VC_FORMAT = "invalid_vc_format";
     public static final String UNSUPPORTED_PROOF_TYPE = "unsupported_proof_type";
     public static final String VC_ISSUANCE_FAILED = "vc_issuance_failed";

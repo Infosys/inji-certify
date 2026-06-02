@@ -142,6 +142,8 @@ public class JwtProofValidator implements ProofValidator {
             log.error("Failed to parse jwt in the credential proof", e);
         } catch (BadJOSEException | JOSEException e) {
             log.error("JWT proof verification failed", e);
+        } catch (Exception e) {
+            log.error("Unexpected exception during proof validation", e);
         }
         return false;
     }

@@ -39,7 +39,12 @@ public class DIDkeysProofManager implements JwtProofKeyManager {
         if (hashIdx != -1) {
             multibase = multibase.substring(0, hashIdx);
         }
-        byte[] b = Multibase.decode(multibase);
+        byte[] b;
+        try {
+            b = Multibase.decode(multibase);
+        } catch (RuntimeException e) {
+            return Optional.empty();
+        }
 
         // full list of keys and their multibase prefixes available here: https://github.com/multiformats/multicodec/blob/master/table.csv
         // NOTE: https://w3c-ccg.github.io/did-key-spec/#signature-method-creation-algorithm

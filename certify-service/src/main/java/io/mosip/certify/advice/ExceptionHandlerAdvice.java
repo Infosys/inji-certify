@@ -106,6 +106,9 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler imple
 
 
     private ResponseEntity<ResponseWrapper> handleInternalControllerException(Exception ex) {
+        if(ex instanceof HttpMessageNotReadableException) {
+            return new ResponseEntity<ResponseWrapper>(getResponseWrapper(INVALID_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
+        }
         if(ex instanceof MethodArgumentNotValidException) {
             List<Error> errors = new ArrayList<>();
             for (FieldError error : ((MethodArgumentNotValidException) ex).getBindingResult().getFieldErrors()) {
@@ -132,6 +135,9 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler imple
         if(ex instanceof CertifyException) {
             String errorCode = ((CertifyException) ex).getErrorCode();
             String errorMessage = ex.getMessage();
+            if(CREDENTIAL_NOT_FOUND.equals(errorCode)) {
+                return new ResponseEntity<>(getResponseWrapper(errorCode, errorMessage), HttpStatus.NOT_FOUND);
+            }
             return new ResponseEntity<ResponseWrapper>(getResponseWrapper(errorCode, errorMessage), HttpStatus.OK);
         }
         if(ex instanceof RenderingTemplateException) {
@@ -152,6 +158,9 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler imple
     }
 
     public ResponseEntity<VCError> handleVCIControllerExceptions(Exception ex) {
+        if(ex instanceof HttpMessageNotReadableException) {
+            return new ResponseEntity<>(getVCErrorDto(INVALID_CREDENTIAL_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
+        }
         if(ex instanceof MethodArgumentNotValidException) {
             FieldError fieldError = ((MethodArgumentNotValidException) ex).getBindingResult().getFieldError();
             String message = fieldError != null ? fieldError.getDefaultMessage() : ex.getMessage();

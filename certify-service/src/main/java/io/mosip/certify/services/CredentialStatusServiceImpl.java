@@ -8,6 +8,7 @@ import io.mosip.certify.core.spi.CredentialStatusService;
 import io.mosip.certify.entity.CredentialStatusTransaction;
 import io.mosip.certify.entity.StatusListCredential;
 import io.mosip.certify.repository.CredentialStatusTransactionRepository;
+import io.mosip.certify.repository.LedgerRepository;
 import io.mosip.certify.repository.StatusListCredentialRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,8 +24,15 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
     @Autowired
     private StatusListCredentialRepository statusListCredentialRepository;
 
+    @Autowired
+    private LedgerRepository ledgerRepository;
+
     @Override
     public CredentialStatusResponse updateCredentialStatus(UpdateCredentialStatusRequest request) {
+        ledgerRepository.findByCredentialId(request.getCredentialId())
+                .orElseThrow(() -> new CertifyException(ErrorConstants.CREDENTIAL_NOT_FOUND,
+                        "Credential not found for ID: " + request.getCredentialId()));
+
         String statusListCredentialId = request.getCredentialStatus().getStatusListCredential();
         Long statusListIndex = request.getCredentialStatus().getStatusListIndex();
         String id = request.getCredentialStatus().getId();
