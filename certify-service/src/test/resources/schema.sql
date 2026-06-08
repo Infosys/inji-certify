@@ -72,6 +72,9 @@ CREATE TABLE IF NOT EXISTS ca_cert_store(
 CREATE TABLE IF NOT EXISTS rendering_template (
     id VARCHAR(128) NOT NULL,
     template VARCHAR NOT NULL,
+    language VARCHAR(10) DEFAULT 'en',
+    side VARCHAR(10) DEFAULT 'front',
+    credential_config_key_id VARCHAR(255),
     cr_dtimes timestamp NOT NULL,
     upd_dtimes timestamp,
     CONSTRAINT pk_rendertmp_id PRIMARY KEY (id)
