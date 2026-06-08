@@ -74,11 +74,14 @@ CREATE TABLE IF NOT EXISTS rendering_template (
     template VARCHAR NOT NULL,
     language VARCHAR(10) DEFAULT 'en',
     side VARCHAR(10) DEFAULT 'front',
-    credential_config_key_id VARCHAR(255),
+    credential_config_key_id VARCHAR(2048),
     cr_dtimes timestamp NOT NULL,
     upd_dtimes timestamp,
-    CONSTRAINT pk_rendertmp_id PRIMARY KEY (id)
+    CONSTRAINT pk_rendertmp_id PRIMARY KEY (id),
+    CONSTRAINT fk_rendering_template_credential_config FOREIGN KEY (credential_config_key_id) REFERENCES credential_config(credential_config_key_id) ON DELETE SET NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_rendering_template_credential_config_key_id ON rendering_template(credential_config_key_id);
 
 -- Changed all `JSONB` and `TEXT[]` types to VARCHAR to make it work with H2 database
 CREATE TABLE IF NOT EXISTS credential_config (
