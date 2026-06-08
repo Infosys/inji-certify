@@ -110,11 +110,6 @@ CREATE TABLE IF NOT EXISTS credential_config (
     CONSTRAINT pk_config_id PRIMARY KEY (context, credential_type, credential_format)
 );
 
-ALTER TABLE rendering_template
-    ADD CONSTRAINT fk_rendering_template_credential_config
-    FOREIGN KEY (credential_config_key_id)
-    REFERENCES credential_config(credential_config_key_id)
-    ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_rendering_template_credential_config_key_id
     ON rendering_template(credential_config_key_id);
