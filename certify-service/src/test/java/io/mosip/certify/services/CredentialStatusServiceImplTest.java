@@ -4,8 +4,10 @@ import io.mosip.certify.core.dto.CredentialStatusResponse;
 import io.mosip.certify.core.dto.UpdateCredentialStatusRequest;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.entity.CredentialStatusTransaction;
+import io.mosip.certify.entity.Ledger;
 import io.mosip.certify.entity.StatusListCredential;
 import io.mosip.certify.repository.CredentialStatusTransactionRepository;
+import io.mosip.certify.repository.LedgerRepository;
 import io.mosip.certify.repository.StatusListCredentialRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,12 +26,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CredentialStatusServiceImplTest {
+public class    CredentialStatusServiceImplTest {
     @Mock
     private CredentialStatusTransactionRepository credentialStatusTransactionRepository;
 
     @Mock
     private StatusListCredentialRepository statusListCredentialRepository;
+
+    @Mock
+    private LedgerRepository ledgerRepository;
 
     @InjectMocks
     private CredentialStatusServiceImpl credentialStatusService;
@@ -37,6 +42,7 @@ public class CredentialStatusServiceImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(ledgerRepository.findByCredentialId(any())).thenReturn(Optional.of(new Ledger()));
     }
 
     @Test
