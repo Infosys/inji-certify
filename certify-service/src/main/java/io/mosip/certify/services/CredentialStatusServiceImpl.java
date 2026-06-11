@@ -37,16 +37,16 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
         Long statusListIndex = request.getCredentialStatus().getStatusListIndex();
         String id = request.getCredentialStatus().getId();
 
-        String statusPurpose = validateAndGetStatusPurpose(
-                request.getCredentialStatus() == null ? null : request.getCredentialStatus().getStatusPurpose()
-        );
-        validateStatusListIndex(statusListIndex);
-
         if(id != null && !id.equals(statusListCredentialId)) {
             throw new CertifyException(ErrorConstants.STATUS_ID_MISMATCH, "Mismatch between credential status ID and Status List Credential.");
         }
         StatusListCredential statusListCredential = statusListCredentialRepository.findById(statusListCredentialId)
                 .orElseThrow(() -> new CertifyException(ErrorConstants.STATUS_LIST_NOT_FOUND, "Status List Credential not found for ID: " + statusListCredentialId));
+
+        String statusPurpose = validateAndGetStatusPurpose(
+                request.getCredentialStatus().getStatusPurpose(), statusListCredential
+        );
+        validateStatusListIndex(statusListIndex);
 
         CredentialStatusTransaction transaction = new CredentialStatusTransaction();
         transaction.setStatusPurpose(statusPurpose);
@@ -66,20 +66,20 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
         return dto;
     }
 
-    private String validateAndGetStatusPurpose(String statusPurpose) {
-        if(allowedCredentialStatusPurposes == null || allowedCredentialStatusPurposes.isEmpty()) {
-            throw new CertifyException(ErrorConstants.INVALID_STATUS_PURPOSE, "No allowed status purposes configured.");
-        }
-        // fallback to revocation when statusPurpose is missing or empty
+    private String validateAndGetStatusPurpose(String statusPurpose, StatusListCredential statusListCredential) {
+        // fallback to StatusListCredential's purpose when statusPurpose is missing or empty
         if(statusPurpose == null || statusPurpose.trim().isEmpty()) {
-            return allowedCredentialStatusPurposes.get(0);
+            return statusListCredential.getStatusPurpose();
         }
         String statusPurposeValue = statusPurpose.trim().toLowerCase();
-        boolean isAllowed = allowedCredentialStatusPurposes.stream()
-                .anyMatch(allowed -> allowed.equalsIgnoreCase(statusPurposeValue));
-        if (!isAllowed) {
-            throw new CertifyException(ErrorConstants.INVALID_STATUS_PURPOSE,
-                    "statusPurpose must be one of: " + allowedCredentialStatusPurposes);
+        // validate against allowed purposes only if the list is configured
+        if(allowedCredentialStatusPurposes != null && !allowedCredentialStatusPurposes.isEmpty()) {
+            boolean isAllowed = allowedCredentialStatusPurposes.stream()
+                    .anyMatch(allowed -> allowed.equalsIgnoreCase(statusPurposeValue));
+            if (!isAllowed) {
+                throw new CertifyException(ErrorConstants.INVALID_STATUS_PURPOSE,
+                        "statusPurpose must be one of: " + allowedCredentialStatusPurposes);
+            }
         }
         return statusPurposeValue;
     }
