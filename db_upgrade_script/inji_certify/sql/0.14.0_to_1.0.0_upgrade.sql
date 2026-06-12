@@ -28,3 +28,25 @@ WHERE credential_format = 'vc+sd-jwt';
 UPDATE certify.credential_config
 SET proof_types_supported = '{"jwt": {"proof_signing_alg_values_supported": ["RS256", "ES256", "PS256", "EdDSA"]}}'::jsonb
 WHERE proof_types_supported = '{}'::jsonb;
+
+-- Replace legacy Ed25519 with EdDSA in existing JWT proof algorithm lists
+UPDATE certify.credential_config
+SET proof_types_supported = jsonb_set(
+    proof_types_supported,
+    '{jwt,proof_signing_alg_values_supported}',
+    (
+      SELECT jsonb_agg(
+        CASE
+          WHEN alg = '"Ed25519"'::jsonb THEN '"EdDSA"'::jsonb
+          ELSE alg
+        END
+      )
+      FROM jsonb_array_elements(proof_types_supported #> '{jwt,proof_signing_alg_values_supported}') AS alg
+    )
+)
+WHERE proof_types_supported #> '{jwt,proof_signing_alg_values_supported}' IS NOT NULL
+  AND EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(proof_types_supported #> '{jwt,proof_signing_alg_values_supported}') AS alg
+      WHERE alg = '"Ed25519"'::jsonb
+  );
