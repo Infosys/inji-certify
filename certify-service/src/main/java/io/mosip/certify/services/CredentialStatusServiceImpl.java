@@ -27,7 +27,7 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
     @Autowired
     private StatusListCredentialRepository statusListCredentialRepository;
 
-    @Value("#{${mosip.certify.data-provider-plugin.credential-status.allowed-status-purposes:{}}}")
+    @Value("#{${mosip.certify.data-provider-plugin.credential-status.allowed-status-purposes:[]}}")
     private List<String> allowedCredentialStatusPurposes;
 
     @Override
