@@ -39,7 +39,7 @@ Create the following directory structure in your local codebase before proceedin
 ```
 docker-compose-injistack/
 ├── data/
-│   └── CERTIFY_PKCS12/(p12 file generated at runtime)
+│   └── CERTIFY_PKCS12/ (p12 file generated at runtime)
 ├── certs/
 │   └── oidckeystore.p12 (to be obtained during onboarding of mimoto to esignet)
 ├── loader_path/
@@ -47,12 +47,20 @@ docker-compose-injistack/
 ├── config/ (default setup should work as is for csvplugin, any other config changes user can make as per their setup)
 │   ├── certify-default.properties
 │   ├── certify-csvdp-farmer.properties
+│   ├── certify-mock-mdl.properties
+│   ├── farmer_identity_data.csv
+│   ├── mimoto-bootstrap.properties
 │   ├── mimoto-default.properties
 │   ├── mimoto-issuers-config.json
 │   ├── mimoto-trusted-verifiers.json
+│   ├── vp_request_config.json
 │   └── credential-template.html
+├── context/
 ├── nginx.conf
+├── certify-nginx.conf
 ├── certify_init.sql
+├── mimoto_init.sql
+├── verify_init.sql
 └── docker-compose.yml
 ```
 
@@ -187,7 +195,7 @@ The following services will be available:
 - Certify Nginx: `localhost:8091`
 - Mimoto Service: `localhost:8099`
 - Inji Web: `localhost:3004`
-- Inji Verify: `localhost:8095`
+- Inji Verify: `localhost:8095` (available only if the `verify-service` is uncommented in `docker-compose.yml`; see [Verify Service](#verify-service))
 
 ## Using the Application
 
