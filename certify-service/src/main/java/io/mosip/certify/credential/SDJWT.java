@@ -76,12 +76,19 @@ public class SDJWT extends Credential{
         PlainHeader header = new PlainHeader();
         JsonNode node;
         String currentPath = "$";
+        
 
         String templatedJSON = super.createCredential(updatedTemplateParams, templateName);
         List<String> sdPaths = super.vcFormatter.getSelectiveDisclosureInfo(templateName);   
         try {
             
             node = objectMapper.readTree(templatedJSON);
+            List<String> invalidSdPaths = SDJsonUtils.findInvalidSdPaths(node, sdPaths);
+            if (!invalidSdPaths.isEmpty()) {
+                log.error("Invalid sd_claims paths not found in VC data: {}", invalidSdPaths);
+                throw new CertifyException(ErrorConstants.INVALID_SD_CLAIMS,
+                        "sd_claims contains paths that do not exist in the credential data: " + invalidSdPaths);
+            }
             SDJsonUtils.constructSDPayload(node, sdObjectBuilder, disclosures, sdPaths, currentPath);
             Map<String,Object>  sdClaims = sdObjectBuilder.build();
             JWTClaimsSet claimsSet = JWTClaimsSet.parse(sdClaims);

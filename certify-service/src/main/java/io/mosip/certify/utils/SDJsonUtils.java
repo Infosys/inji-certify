@@ -222,6 +222,71 @@ public class SDJsonUtils {
     }
 
     /**
+     * Validates that every sd_claims path exists in the given JSON node.
+     *
+     * @param root    The root JsonNode built from the templated VC JSON.
+     * @param sdPaths The configured sd_claims paths (e.g. ["$.sub", "$.address[*].city"]).
+     * @return A list of paths that could not be resolved in the JSON (empty means all valid).
+     */
+    public static List<String> findInvalidSdPaths(JsonNode root, List<String> sdPaths) {
+        List<String> invalidPaths = new ArrayList<>();
+        for (String sdPath : sdPaths) {
+            if (!existsInJson(root, sdPath.trim())) {
+                invalidPaths.add(sdPath);
+            }
+        }
+        return invalidPaths;
+    }
+
+    /**
+     * Returns true when {@code sdPath} resolves to at least one node inside {@code root}.
+     * Supports simple fields, object traversal, and array wildcards ([*]) or indices ([n]).
+     */
+    private static boolean existsInJson(JsonNode root, String sdPath) {
+        String path = sdPath;
+        if (path.startsWith("$.")) {
+            path = path.substring(2);
+        } else if (path.startsWith("$")) {
+            path = path.substring(1);
+        }
+        if (path.isEmpty()) return true;
+
+        List<JsonNode> current = new ArrayList<>();
+        current.add(root);
+
+        for (String segment : path.split("\\.")) {
+            List<JsonNode> next = new ArrayList<>();
+            for (JsonNode node : current) {
+                if (segment.contains("[")) {
+                    int bracketStart = segment.indexOf('[');
+                    String fieldName = segment.substring(0, bracketStart);
+                    String indexStr = segment.substring(bracketStart + 1, segment.indexOf(']'));
+
+                    JsonNode arrayNode = fieldName.isEmpty() ? node : node.get(fieldName);
+                    if (arrayNode == null || !arrayNode.isArray()) continue;
+
+                    if ("*".equals(indexStr)) {
+                        arrayNode.forEach(next::add);
+                    } else {
+                        try {
+                            int idx = Integer.parseInt(indexStr);
+                            if (idx < arrayNode.size()) next.add(arrayNode.get(idx));
+                        } catch (NumberFormatException e) {
+                            log.warn("Unrecognised array index in sd_claims path segment: {}", segment);
+                        }
+                    }
+                } else {
+                    JsonNode child = node.get(segment);
+                    if (child != null && !child.isMissingNode()) next.add(child);
+                }
+            }
+            current = next;
+            if (current.isEmpty()) return false;
+        }
+        return true;
+    }
+
+    /**
      * Extracts the leaf node name from the given JSONPath string.
      *
      * @param jsonPath The JSONPath string (e.g., $.store.book[0].author)

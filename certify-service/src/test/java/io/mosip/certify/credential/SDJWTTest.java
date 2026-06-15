@@ -1,7 +1,5 @@
 package io.mosip.certify.credential;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.certify.api.dto.VCResult;
 import io.mosip.certify.core.constants.ErrorConstants;
@@ -36,8 +34,7 @@ public class SDJWTTest {
     @Mock
     private SignatureService mockSignatureService;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private SDJWT sdjwt;
@@ -60,16 +57,14 @@ public class SDJWTTest {
     }
 
     @Test
-    public void testCreateCredential_WithValidInput_ReturnsSdJwt() throws JsonProcessingException {
+    public void testCreateCredential_WithValidInput_ReturnsSdJwt() {
         String mockTemplateName = "mockTemplate";
         Map<String, Object> templateParams = new HashMap<>();
 
         String templateJson = "{\"name\": \"John\", \"age\": 30}";
-        JsonNode mockJsonNode =  mock(JsonNode.class);
         when(mockFormatter.format(any(Map.class))).thenReturn(templateJson);
         when(mockFormatter.getSelectiveDisclosureInfo(mockTemplateName))
                 .thenReturn(Arrays.asList("$.name"));
-        when(objectMapper.readTree(templateJson)).thenReturn(mockJsonNode);
 
         String result = sdjwt.createCredential(templateParams, mockTemplateName);
 
@@ -78,13 +73,12 @@ public class SDJWTTest {
     }
 
     @Test
-    public void testCreateCredential_WithInvalidJson_ReturnsFallbackJwt() throws JsonProcessingException {
+    public void testCreateCredential_WithInvalidJson_ReturnsFallbackJwt() {
         String mockTemplateName = "badTemplate";
         Map<String, Object> templateParams = new HashMap<>();
 
         when(mockFormatter.format(any(Map.class))).thenReturn("{invalid json}");
         when(mockFormatter.getSelectiveDisclosureInfo(mockTemplateName)).thenReturn(Arrays.asList("$.invalid"));
-        when(objectMapper.readTree("{invalid json}")).thenThrow(new JsonProcessingException("Invalid JSON") {});
 
         CertifyException exception = assertThrows(CertifyException.class, () -> {
             sdjwt.createCredential(templateParams, mockTemplateName);
@@ -92,6 +86,23 @@ public class SDJWTTest {
 
         assertEquals(ErrorConstants.JSON_PROCESSING_ERROR, exception.getErrorCode());
         assertTrue(exception.getMessage().contains("Failed to process JSON during SD-JWT creation."));
+    }
+
+    @Test
+    public void testCreateCredential_WithInvalidSdClaimPaths_ThrowsCertifyException() {
+        String mockTemplateName = "mockTemplate";
+        Map<String, Object> templateParams = new HashMap<>();
+
+        // Template has plain string fields, but sdClaim paths expect arrays / non-existent fields
+        String templateJson = "{\"gender\": \"Male\", \"fullName\": \"John Doe\"}";
+        when(mockFormatter.format(any(Map.class))).thenReturn(templateJson);
+        when(mockFormatter.getSelectiveDisclosureInfo(mockTemplateName))
+                .thenReturn(Arrays.asList("$.gender[*].*", "$.contactDetails", "$.fullName[*].value"));
+
+        CertifyException exception = assertThrows(CertifyException.class, () ->
+                sdjwt.createCredential(templateParams, mockTemplateName));
+
+        assertEquals(ErrorConstants.INVALID_SD_CLAIMS, exception.getErrorCode());
     }
 
     @Test

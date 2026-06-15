@@ -192,6 +192,93 @@ public class SDJsonUtilsTest extends TestCase {
       assertTrue(mobilePhoneObject.containsKey("number"));
     }
 
+  // ── findInvalidSdPaths ────────────────────────────────────────────────────
+
+  public void testFindInvalidSdPaths_AllValidSimpleFields() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      root.put("gender", "Male");
+      root.put("fullName", "John Doe");
+      root.put("dateOfBirth", "1990-01-01");
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root,
+              Arrays.asList("$.gender", "$.fullName", "$.dateOfBirth"));
+      assertTrue("All simple field paths should be valid", invalid.isEmpty());
+  }
+
+  public void testFindInvalidSdPaths_NonExistentField() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      root.put("gender", "Male");
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root,
+              Arrays.asList("$.contactDetails"));
+      assertEquals(1, invalid.size());
+      assertEquals("$.contactDetails", invalid.get(0));
+  }
+
+  /**
+   * Reproduces INJICERT-1162: gender and fullName exist as plain strings in the
+   * template, but the sdClaim is configured with array-style paths ([*]).
+   * These paths must be reported as invalid.
+   */
+  public void testFindInvalidSdPaths_ArrayPathOnStringField() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      root.put("gender", "Male");
+      root.put("fullName", "John Doe");
+      root.put("dateOfBirth", "1990-01-01");
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root,
+              Arrays.asList("$.gender[*].*", "$.fullName[*].value", "$.dateOfBirth"));
+      assertEquals(2, invalid.size());
+      assertTrue(invalid.contains("$.gender[*].*"));
+      assertTrue(invalid.contains("$.fullName[*].value"));
+  }
+
+  public void testFindInvalidSdPaths_ValidArrayWildcardPath() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      ArrayNode addresses = JsonNodeFactory.instance.arrayNode();
+      ObjectNode addr = JsonNodeFactory.instance.objectNode();
+      addr.put("city", "New York");
+      addresses.add(addr);
+      root.set("addresses", addresses);
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root,
+              Arrays.asList("$.addresses[*].city"));
+      assertTrue("Valid array wildcard path should not be flagged", invalid.isEmpty());
+  }
+
+  public void testFindInvalidSdPaths_ValidSpecificIndexPath() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      ArrayNode phones = JsonNodeFactory.instance.arrayNode();
+      phones.add("123-456");
+      root.set("phones", phones);
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root,
+              Arrays.asList("$.phones[0]"));
+      assertTrue("Valid specific-index path should not be flagged", invalid.isEmpty());
+  }
+
+  public void testFindInvalidSdPaths_EmptySdPaths() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      root.put("name", "John");
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root, Arrays.asList());
+      assertTrue("Empty sdPaths list should return no invalid paths", invalid.isEmpty());
+  }
+
+  public void testFindInvalidSdPaths_MixedValidAndInvalid() {
+      ObjectNode root = JsonNodeFactory.instance.objectNode();
+      root.put("dateOfBirth", "1990-01-01");
+      root.put("region", "South");
+
+      List<String> invalid = SDJsonUtils.findInvalidSdPaths(root,
+              Arrays.asList("$.dateOfBirth", "$.contactDetails", "$.region", "$.identityDetails.*"));
+      assertEquals(2, invalid.size());
+      assertTrue(invalid.contains("$.contactDetails"));
+      assertTrue(invalid.contains("$.identityDetails.*"));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   public void testConstructSDPayload_WildcardPatterns(){
     // Create the input JSONNode from the provided JSON
     ObjectNode node = JsonNodeFactory.instance.objectNode();
