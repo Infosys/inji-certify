@@ -1,5 +1,26 @@
--- Upgrade script from 0.14.0 to 1.0.0
--- Version 1.0.0 Release
+UPDATE certify.credential_config
+SET display = COALESCE((
+    SELECT jsonb_agg(
+                   CASE
+                       WHEN elem->'logo' IS NOT NULL
+                           AND (elem->'logo')::jsonb ? 'url' THEN
+                           jsonb_set(
+                                   elem::jsonb,
+                                   '{logo}',
+                                   ((elem->'logo')::jsonb - 'url')
+                    || jsonb_build_object('uri', (elem->'logo')::jsonb -> 'url')
+                )
+                       ELSE elem::jsonb
+                       END
+           )
+    FROM jsonb_array_elements(display::jsonb) AS elem
+), '[]'::jsonb)
+WHERE display IS NOT NULL;
 
--- No schema changes required for this release
+ALTER TABLE certify.credential_config
+RENAME COLUMN credential_subject TO claims;
+COMMENT ON COLUMN certify.credential_config.claims IS 'Claims: JSON object containing subject attributes schema.';
 
+UPDATE certify.credential_config
+SET credential_format = 'dc+sd-jwt'
+WHERE credential_format = 'vc+sd-jwt';
