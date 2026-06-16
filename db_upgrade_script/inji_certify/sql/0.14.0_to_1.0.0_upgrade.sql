@@ -35,13 +35,15 @@ SET proof_types_supported = jsonb_set(
     proof_types_supported,
     '{jwt,proof_signing_alg_values_supported}',
     (
-      SELECT jsonb_agg(
-        CASE
-          WHEN alg = '"Ed25519"'::jsonb THEN '"EdDSA"'::jsonb
-          ELSE alg
-        END
-      )
-      FROM jsonb_array_elements(proof_types_supported #> '{jwt,proof_signing_alg_values_supported}') AS alg
+      SELECT COALESCE(jsonb_agg(DISTINCT val), '[]'::jsonb)
+      FROM (
+        SELECT
+          CASE
+            WHEN alg = '"Ed25519"'::jsonb THEN '"EdDSA"'::jsonb
+            ELSE alg
+          END AS val
+        FROM jsonb_array_elements(proof_types_supported #> '{jwt,proof_signing_alg_values_supported}') AS alg
+      ) sub
     )
 )
 WHERE proof_types_supported #> '{jwt,proof_signing_alg_values_supported}' IS NOT NULL
