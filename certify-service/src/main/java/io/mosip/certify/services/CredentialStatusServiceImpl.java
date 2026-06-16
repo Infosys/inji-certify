@@ -27,6 +27,7 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
     @Autowired
     private StatusListCredentialRepository statusListCredentialRepository;
 
+    // {} is SpEL inline-list syntax (not a map); evaluates to empty List<String> when property is unset
     @Value("#{${mosip.certify.data-provider-plugin.credential-status.allowed-status-purposes:{}}}")
     private List<String> allowedCredentialStatusPurposes;
 
@@ -46,7 +47,7 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
         String statusPurpose = validateAndGetStatusPurpose(
                 request.getCredentialStatus().getStatusPurpose(), statusListCredential
         );
-        validateStatusListIndex(statusListIndex);
+        validateStatusListIndex(statusListIndex, statusListCredential.getCapacityInKB());
 
         CredentialStatusTransaction transaction = new CredentialStatusTransaction();
         transaction.setStatusPurpose(statusPurpose);
@@ -84,15 +85,16 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
         return statusPurposeValue;
     }
 
-    private void validateStatusListIndex(Long statusListIndex) {
+    private void validateStatusListIndex(Long statusListIndex, Long capacityInKB) {
         if (statusListIndex == null) {
             throw new CertifyException(ErrorConstants.INVALID_STATUS_LIST_INDEX, "statusListIndex must not be null");
         }
         if(statusListIndex < 0) {
             throw new CertifyException(ErrorConstants.INVALID_STATUS_LIST_INDEX, "statusListIndex must be a non-negative integer");
         }
-        if(statusListIndex >= DEFAULT_STATUS_LIST_SIZE) {
-            String errorMsg = String.format("statusListIndex must be between 0 and %d", DEFAULT_STATUS_LIST_SIZE - 1);
+        long maxIndex = (capacityInKB != null) ? capacityInKB * 1024L * 8L : DEFAULT_STATUS_LIST_SIZE;
+        if(statusListIndex >= maxIndex) {
+            String errorMsg = String.format("statusListIndex must be between 0 and %d", maxIndex - 1);
             throw new CertifyException(ErrorConstants.STATUS_LIST_INDEX_OUT_OF_RANGE, errorMsg);
         }
     }
