@@ -230,8 +230,16 @@ public class SDJsonUtils {
      */
     public static List<String> findInvalidSdPaths(JsonNode root, List<String> sdPaths) {
         List<String> invalidPaths = new ArrayList<>();
+        if (sdPaths == null) {
+            return invalidPaths;
+        }
         for (String sdPath : sdPaths) {
-            if (!existsInJson(root, sdPath.trim())) {
+            if (sdPath == null) {
+                invalidPaths.add(null);
+                continue;
+            }
+            String trimmed = sdPath.trim();
+            if (trimmed.isEmpty() || !existsInJson(root, trimmed)) {
                 invalidPaths.add(sdPath);
             }
         }
@@ -259,8 +267,12 @@ public class SDJsonUtils {
             for (JsonNode node : current) {
                 if (segment.contains("[")) {
                     int bracketStart = segment.indexOf('[');
+                    int bracketEnd = segment.indexOf(']');
+                    if (bracketEnd <= bracketStart) {
+                        return false;
+                    }
                     String fieldName = segment.substring(0, bracketStart);
-                    String indexStr = segment.substring(bracketStart + 1, segment.indexOf(']'));
+                    String indexStr = segment.substring(bracketStart + 1, bracketEnd);
 
                     JsonNode arrayNode = fieldName.isEmpty() ? node : node.get(fieldName);
                     if (arrayNode == null || !arrayNode.isArray()) continue;
