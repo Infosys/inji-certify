@@ -55,7 +55,7 @@ docker-compose-injistack/
 │   ├── mimoto-trusted-verifiers.json
 │   ├── vp_request_config.json
 │   └── credential-template.html
-├── context/
+├── context/           (user-supplied JSON-LD context files for credential types, e.g. farmer.json)
 ├── nginx.conf
 ├── certify-nginx.conf
 ├── certify_init.sql
