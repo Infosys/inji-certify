@@ -4,10 +4,8 @@ import io.mosip.certify.core.dto.CredentialStatusResponse;
 import io.mosip.certify.core.dto.UpdateCredentialStatusRequest;
 import io.mosip.certify.core.exception.CertifyException;
 import io.mosip.certify.entity.CredentialStatusTransaction;
-import io.mosip.certify.entity.Ledger;
 import io.mosip.certify.entity.StatusListCredential;
 import io.mosip.certify.repository.CredentialStatusTransactionRepository;
-import io.mosip.certify.repository.LedgerRepository;
 import io.mosip.certify.repository.StatusListCredentialRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +14,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -26,15 +26,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class    CredentialStatusServiceImplTest {
+public class CredentialStatusServiceImplTest {
+
     @Mock
     private CredentialStatusTransactionRepository credentialStatusTransactionRepository;
 
     @Mock
     private StatusListCredentialRepository statusListCredentialRepository;
-
-    @Mock
-    private LedgerRepository ledgerRepository;
 
     @InjectMocks
     private CredentialStatusServiceImpl credentialStatusService;
@@ -42,14 +40,28 @@ public class    CredentialStatusServiceImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(ledgerRepository.findByCredentialId(any())).thenReturn(Optional.of(new Ledger()));
+    }
+
+    @Test
+    public void updateCredentialStatusV2_InvalidStatusPurpose_ThrowsException() {
+        String statusListCredential = "https://example.com/status-list/xyz#87823";
+        UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(statusListCredential);
+        request.getCredentialStatus().setStatusPurpose("deactivate");
+        ReflectionTestUtils.setField(credentialStatusService, "allowedCredentialStatusPurposes", List.of("revocation"));
+
+        CertifyException exception = assertThrows(CertifyException.class, () -> {
+            credentialStatusService.updateCredentialStatus(request);
+        });
+
+        assertEquals("invalid_status_purpose", exception.getErrorCode());
+        assertEquals("Invalid credential status purpose. Allowed values are: [revocation]", exception.getMessage());
     }
 
     @Test
     public void updateCredentialStatusV2_StatusIdMismatch_ThrowsException() {
         String statusListCredential = "https://example.com/status-list/xyz#87823";
         UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(statusListCredential);
-        request.getCredentialStatus().setId("https://example.com/status-list/abc#12345"); // Mismatched ID
+        request.getCredentialStatus().setId("https://example.com/status-list/abc#12345");
 
         CertifyException exception = assertThrows(CertifyException.class, () -> {
             credentialStatusService.updateCredentialStatus(request);
@@ -75,25 +87,6 @@ public class    CredentialStatusServiceImplTest {
     }
 
     @Test
-    public void updateCredentialStatusV2_NullStatusPurpose_UsesStatusListCredentialPurpose() {
-        String statusListCredential = "https://example.com/status-list/xyz#87823";
-        UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(statusListCredential);
-        request.getCredentialStatus().setStatusPurpose(null); // Null status purpose
-
-        StatusListCredential mockStatusListCredential = new StatusListCredential();
-        mockStatusListCredential.setStatusPurpose("revocation");
-
-        when(statusListCredentialRepository.findById(statusListCredential)).thenReturn(Optional.of(mockStatusListCredential));
-        when(credentialStatusTransactionRepository.save(any(CredentialStatusTransaction.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        CredentialStatusResponse response = credentialStatusService.updateCredentialStatus(request);
-
-        assertNotNull(response);
-        assertEquals("revocation", response.getStatusPurpose());
-    }
-
-    @Test
     public void updateCredentialStatusV2_ValidRequest_ReturnsResponse() {
         String statusListCredential = "https://example.com/status-list/xyz#87823";
         UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(statusListCredential);
@@ -115,7 +108,7 @@ public class    CredentialStatusServiceImplTest {
 
     @Test
     public void updateCredentialStatusV2_NullStatusListCredential_ThrowsException() {
-        UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(null); // Null StatusListCredential
+        UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(null);
 
         CertifyException exception = assertThrows(CertifyException.class, () -> {
             credentialStatusService.updateCredentialStatus(request);
@@ -129,7 +122,7 @@ public class    CredentialStatusServiceImplTest {
     public void updateCredentialStatusV2_NullStatusListIndex_ThrowsException() {
         String statusListCredential = "https://example.com/status-list/xyz#87823";
         UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(statusListCredential);
-        request.getCredentialStatus().setStatusListIndex(null); // Null StatusListIndex
+        request.getCredentialStatus().setStatusListIndex(null);
 
         CertifyException exception = assertThrows(CertifyException.class, () -> {
             credentialStatusService.updateCredentialStatus(request);
@@ -137,25 +130,6 @@ public class    CredentialStatusServiceImplTest {
 
         assertEquals("status_list_not_found_for_the_given_id", exception.getErrorCode());
         assertEquals("Status List Credential not found for ID: https://example.com/status-list/xyz#87823", exception.getMessage());
-    }
-
-    @Test
-    public void updateCredentialStatusV2_EmptyStatusPurpose_UsesStatusListCredentialPurpose() {
-        String statusListCredential = "https://example.com/status-list/xyz#87823";
-        UpdateCredentialStatusRequest request = createValidUpdateCredentialRequest(statusListCredential);
-        request.getCredentialStatus().setStatusPurpose(""); // Empty StatusPurpose
-
-        StatusListCredential mockStatusListCredential = new StatusListCredential();
-        mockStatusListCredential.setStatusPurpose("revocation");
-
-        when(statusListCredentialRepository.findById(statusListCredential)).thenReturn(Optional.of(mockStatusListCredential));
-        when(credentialStatusTransactionRepository.save(any(CredentialStatusTransaction.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        CredentialStatusResponse response = credentialStatusService.updateCredentialStatus(request);
-
-        assertNotNull(response);
-        assertEquals("revocation", response.getStatusPurpose());
     }
 
     @Test
@@ -181,7 +155,7 @@ public class    CredentialStatusServiceImplTest {
 
         UpdateCredentialStatusRequest request = new UpdateCredentialStatusRequest();
         request.setCredentialStatus(statusDto);
-        request.setStatus(true); // Mark as revoked
+        request.setStatus(true);
 
         return request;
     }
