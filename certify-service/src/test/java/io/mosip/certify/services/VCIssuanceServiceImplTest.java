@@ -474,6 +474,35 @@ public class VCIssuanceServiceImplTest {
     }
 
     @Test
+    public void getCredential_UnparseableProofJwt_ThrowsInvalidCredentialRequest() {
+        request = new CredentialRequest();
+        request.setCredentialConfigId("test-credential-id-ldp");
+        request.setProofs(Map.of(ProofType.JWT, List.of("djedneujdnw")));
+
+        when(parsedAccessToken.isActive()).thenReturn(true);
+        when(parsedAccessToken.getClaims()).thenReturn(claimsFromAccessToken);
+        when(proofValidatorFactory.getProofValidator(anyString())).thenReturn(proofValidator);
+
+        CertifyException ex = assertThrows(CertifyException.class, () -> issuanceService.getCredential(request));
+        assertEquals(VCIErrorConstants.INVALID_CREDENTIAL_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    public void getCredential_UnparseableProofJwtWithoutNonceEndpoint_ThrowsInvalidCredentialRequest() {
+        request = new CredentialRequest();
+        request.setCredentialConfigId("test-credential-id-ldp");
+        request.setProofs(Map.of(ProofType.JWT, List.of("notavalidjwt")));
+        mockGlobalCredentialIssuerMetadataDTO.setNonceEndpoint(null);
+
+        when(parsedAccessToken.isActive()).thenReturn(true);
+        when(parsedAccessToken.getClaims()).thenReturn(claimsFromAccessToken);
+        when(proofValidatorFactory.getProofValidator(anyString())).thenReturn(proofValidator);
+
+        CertifyException ex = assertThrows(CertifyException.class, () -> issuanceService.getCredential(request));
+        assertEquals(VCIErrorConstants.INVALID_CREDENTIAL_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
     public void getCredential_NotAuthenticated_ThrowsException() throws Exception {
         request = createValidCredentialRequest(VCFormats.LDP_VC);
         when(parsedAccessToken.isActive()).thenReturn(false); // Token not active

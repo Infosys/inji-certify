@@ -8,12 +8,13 @@ import io.mosip.certify.core.spi.CredentialStatusService;
 import io.mosip.certify.entity.CredentialStatusTransaction;
 import io.mosip.certify.entity.StatusListCredential;
 import io.mosip.certify.repository.CredentialStatusTransactionRepository;
-import io.mosip.certify.repository.LedgerRepository;
 import io.mosip.certify.repository.StatusListCredentialRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -24,14 +25,16 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
     @Autowired
     private StatusListCredentialRepository statusListCredentialRepository;
 
-    @Autowired
-    private LedgerRepository ledgerRepository;
+    @Value("#{${mosip.certify.data-provider-plugin.credential-status.allowed-status-purposes:{}}}")
+    private List<String> allowedCredentialStatusPurposes;
 
     @Override
     public CredentialStatusResponse updateCredentialStatus(UpdateCredentialStatusRequest request) {
-        ledgerRepository.findByCredentialId(request.getCredentialId())
-                .orElseThrow(() -> new CertifyException(ErrorConstants.CREDENTIAL_NOT_FOUND,
-                        "Credential not found for ID: " + request.getCredentialId()));
+        String statusPurpose = request.getCredentialStatus().getStatusPurpose();
+        if (!allowedCredentialStatusPurposes.isEmpty() && !allowedCredentialStatusPurposes.contains(statusPurpose)) {
+            throw new CertifyException(ErrorConstants.INVALID_STATUS_PURPOSE,
+                    "Invalid credential status purpose. Allowed values are: " + allowedCredentialStatusPurposes);
+        }
 
         String statusListCredentialId = request.getCredentialStatus().getStatusListCredential();
         Long statusListIndex = request.getCredentialStatus().getStatusListIndex();
@@ -44,11 +47,7 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
                 .orElseThrow(() -> new CertifyException(ErrorConstants.STATUS_LIST_NOT_FOUND, "Status List Credential not found for ID: " + statusListCredentialId));
 
         CredentialStatusTransaction transaction = new CredentialStatusTransaction();
-        if(StringUtils.isEmpty(request.getCredentialStatus().getStatusPurpose())) {
-            transaction.setStatusPurpose(statusListCredential.getStatusPurpose());
-        } else {
-            transaction.setStatusPurpose(request.getCredentialStatus().getStatusPurpose());
-        }
+        transaction.setStatusPurpose(request.getCredentialStatus().getStatusPurpose());
         transaction.setStatusValue(request.getStatus());
         transaction.setStatusListCredentialId(statusListCredentialId);
         transaction.setStatusListIndex(statusListIndex);

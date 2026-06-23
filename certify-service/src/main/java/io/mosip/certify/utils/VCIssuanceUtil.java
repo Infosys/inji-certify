@@ -42,8 +42,7 @@ public class VCIssuanceUtil {
             }
         }
         catch (ParseException e) {
-            // check iff specific error exists for invalid holderKey
-            throw new CertifyException(VCIErrorConstants.INVALID_PROOF, "Error encountered during proof jwt parsing.");
+            throw new CertifyException(VCIErrorConstants.INVALID_CREDENTIAL_REQUEST, "Error encountered during proof jwt parsing. aqhabqhs");
         }
 
         if (proofJwtHasNonceClaim != hasNonceEndpoint) {

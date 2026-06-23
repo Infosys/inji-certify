@@ -1,11 +1,13 @@
 package io.mosip.certify.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateCredentialStatusRequest {
     @NotBlank
     private String credentialId;
@@ -21,6 +23,7 @@ public class UpdateCredentialStatusRequest {
     public static class CredentialStatusDto {
         private String id;
         private String type;
+        @NotNull
         private String statusPurpose;
         @NotNull
         private Long statusListIndex;
