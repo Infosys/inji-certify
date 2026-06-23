@@ -31,7 +31,7 @@ public class CredentialStatusServiceImpl implements CredentialStatusService {
     @Override
     public CredentialStatusResponse updateCredentialStatus(UpdateCredentialStatusRequest request) {
         String statusPurpose = request.getCredentialStatus().getStatusPurpose();
-        if (!allowedCredentialStatusPurposes.isEmpty() && !allowedCredentialStatusPurposes.contains(statusPurpose)) {
+        if (allowedCredentialStatusPurposes != null && !allowedCredentialStatusPurposes.isEmpty() && !allowedCredentialStatusPurposes.contains(statusPurpose)) {
             throw new CertifyException(ErrorConstants.INVALID_STATUS_PURPOSE,
                     "Invalid credential status purpose. Allowed values are: " + allowedCredentialStatusPurposes);
         }

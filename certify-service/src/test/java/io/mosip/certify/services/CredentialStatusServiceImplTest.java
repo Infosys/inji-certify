@@ -40,6 +40,7 @@ public class CredentialStatusServiceImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        ReflectionTestUtils.setField(credentialStatusService, "allowedCredentialStatusPurposes", List.of());
     }
 
     @Test
