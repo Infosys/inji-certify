@@ -113,16 +113,16 @@ public class IarVpRequestService {
             );
 
             log.debug("Calling inji-verify library createAuthorizationRequest for verifier client_id: {}", verifierClientId);
-            VPRequestResponseDto libraryResponse = vpRequestService.createAuthorizationRequest(vpRequestCreateDto);
+            VPRequestResponseDto vpAuthRequest = vpRequestService.createAuthorizationRequest(vpRequestCreateDto);
 
-            if (libraryResponse == null) {
+            if (vpAuthRequest == null) {
                 throw new CertifyException("unknown_error", "Empty response from inji-verify library");
             }
 
             log.info("VP request created via library for client_id: {}, transactionId: {}",
-                     iarRequest.getClientId(), libraryResponse.getTransactionId());
+                     iarRequest.getClientId(), vpAuthRequest.getTransactionId());
 
-            return mapToVerifyVpResponse(libraryResponse);
+            return mapToVerifyVpResponse(vpAuthRequest);
 
         } catch (CertifyException e) {
             throw e;
@@ -175,18 +175,18 @@ public class IarVpRequestService {
         response.setRequestId(dto.getRequestId());
         response.setExpiresAt(dto.getExpiresAt());
 
-        AuthorizationRequestResponseDto la = dto.getAuthorizationDetails();
-        if (la != null) {
-            VerifyVpResponse.AuthorizationDetails ad = new VerifyVpResponse.AuthorizationDetails();
-            ad.setClientId(la.getClientId());
-            ad.setNonce(la.getNonce());
-            ad.setResponseUri(la.getResponseUri());
-            ad.setResponseType(la.getResponseType());
-            ad.setResponseMode(la.getResponseMode());
-            ad.setIssuedAt(la.getIssuedAt());
-            ad.setPresentationDefinition(
-                    objectMapper.convertValue(la.getPresentationDefinition(), PresentationDefinition.class));
-            response.setAuthorizationDetails(ad);
+        AuthorizationRequestResponseDto authorizationRequestResponse = dto.getAuthorizationDetails();
+        if (authorizationRequestResponse != null) {
+            VerifyVpResponse.AuthorizationDetails authorizationDetails = new VerifyVpResponse.AuthorizationDetails();
+            authorizationDetails.setClientId(authorizationRequestResponse.getClientId());
+            authorizationDetails.setNonce(authorizationRequestResponse.getNonce());
+            authorizationDetails.setResponseUri(authorizationRequestResponse.getResponseUri());
+            authorizationDetails.setResponseType(authorizationRequestResponse.getResponseType());
+            authorizationDetails.setResponseMode(authorizationRequestResponse.getResponseMode());
+            authorizationDetails.setIssuedAt(authorizationRequestResponse.getIssuedAt());
+            authorizationDetails.setPresentationDefinition(
+                    objectMapper.convertValue(authorizationRequestResponse.getPresentationDefinition(), PresentationDefinition.class));
+            response.setAuthorizationDetails(authorizationDetails);
         }
         return response;
     }
