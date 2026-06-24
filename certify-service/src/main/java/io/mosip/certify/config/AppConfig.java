@@ -33,9 +33,17 @@ import io.mosip.kernel.keymanagerservice.dto.SymmetricKeyGenerateRequestDto;
 import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import lombok.extern.slf4j.Slf4j;
 
-@Configuration("certifyAppConfig")
-@EnableJpaRepositories(basePackages = {"io.mosip.kernel.keymanagerservice.repository", "io.mosip.certify.repository", "io.inji.verify.repository"})
-@EntityScan(basePackages = {"io.mosip.kernel.keymanagerservice.entity", "io.mosip.certify.entity", "io.inji.verify.entity"})
+@Configuration
+@EnableJpaRepositories(basePackages = {
+        "io.mosip.kernel.keymanagerservice.repository",
+        "io.mosip.certify.repository",
+        "io.inji.verify.repository"
+})
+@EntityScan(basePackages = {
+        "io.mosip.kernel.keymanagerservice.entity",
+        "io.mosip.certify.entity",
+        "io.inji.verify.models"
+})
 @Slf4j
 public class AppConfig implements ApplicationRunner {
 

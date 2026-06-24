@@ -6,9 +6,9 @@
 package io.mosip.certify.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.inji.verify.dto.result.VCResultDto;
-import io.inji.verify.dto.submission.VPTokenResultDto;
-import io.inji.verify.enums.VPResultStatus;
+import io.inji.verify.dto.result.CredentialResultsDto;
+import io.inji.verify.dto.result.VPVerificationResultDto;
+import io.inji.verify.dto.result.VerificationRequestDto;
 import io.inji.verify.services.VerifiablePresentationRequestService;
 import io.inji.verify.services.VerifiablePresentationSubmissionService;
 import io.mosip.certify.core.constants.ErrorConstants;
@@ -189,7 +189,9 @@ public class IarPresentationService {
             List<String> requestIds = vpRequestService.getLatestRequestIdFor(transactionId);
             log.debug("Fetching VP result for transactionId: {}, requestIds: {}", transactionId, requestIds);
 
-            VPTokenResultDto vpResult = vpSubmissionService.getVPResult(requestIds, transactionId);
+            VerificationRequestDto verificationRequest = new VerificationRequestDto();
+            verificationRequest.setIncludeClaims(true);
+            VPVerificationResultDto vpResult = vpSubmissionService.getVPResultV2(verificationRequest, requestIds, transactionId);
 
             VpVerificationResponse response = new VpVerificationResponse();
             response.setRequestId(transactionId);
@@ -198,15 +200,15 @@ public class IarPresentationService {
                 Map<String, Object> verificationDetails = buildVerificationDetails(vpResult);
                 response.setVerificationDetails(verificationDetails);
 
-                if (VPResultStatus.SUCCESS == vpResult.getVpResultStatus()) {
+                if (vpResult.isAllChecksSuccessful()) {
                     response.setStatus(IarStatus.OK.getValue());
                     log.info("VP cryptographic verification successful for transaction_id: {}", transactionId);
                 } else {
                     response.setStatus(IarStatus.ERROR.getValue());
                     response.setError("verification_failed");
                     response.setErrorDescription("VP cryptographic verification failed");
-                    log.warn("VP cryptographic verification failed for transaction_id: {}, status: {}",
-                             transactionId, vpResult.getVpResultStatus());
+                    log.warn("VP cryptographic verification failed for transaction_id: {}",
+                             transactionId);
                 }
             } else {
                 response.setStatus(IarStatus.ERROR.getValue());
@@ -230,18 +232,19 @@ public class IarPresentationService {
         }
     }
 
-    private Map<String, Object> buildVerificationDetails(VPTokenResultDto vpResult) {
+    private Map<String, Object> buildVerificationDetails(VPVerificationResultDto vpResult) {
         Map<String, Object> details = new HashMap<>();
-        details.put("vpResultStatus", vpResult.getVpResultStatus().name());
-        List<Map<String, Object>> vcResultsList = new ArrayList<>();
-        if (vpResult.getVcResults() != null) {
-            for (VCResultDto vcResult : vpResult.getVcResults()) {
-                Map<String, Object> vcEntry = new HashMap<>();
-                vcEntry.put("vc", vcResult.getVc());
-                vcResultsList.add(vcEntry);
+        details.put("allChecksSuccessful", vpResult.isAllChecksSuccessful());
+        List<Map<String, Object>> credentialResultsList = new ArrayList<>();
+        if (vpResult.getCredentialResults() != null) {
+            for (CredentialResultsDto credentialResult : vpResult.getCredentialResults()) {
+                Map<String, Object> credentialEntry = new HashMap<>();
+                credentialEntry.put("verifiableCredential", credentialResult.getVerifiableCredential());
+                credentialEntry.put("allChecksSuccessful", credentialResult.isAllChecksSuccessful());
+                credentialResultsList.add(credentialEntry);
             }
         }
-        details.put("vcResults", vcResultsList);
+        details.put("credentialResults", credentialResultsList);
         return details;
     }
 
@@ -249,7 +252,9 @@ public class IarPresentationService {
      * Generate and store authorization code.
      */
     private String generateAndStoreAuthorizationCode(IarSession session) throws CertifyException {
+        // Idempotency guard: if an authorization code already exists for this session
         if (StringUtils.hasText(session.getAuthorizationCode())) {
+            // Check if the existing code has already been used - if so, this is an error
             if (Boolean.TRUE.equals(session.getIsCodeUsed())) {
                 log.error("Authorization code already used for auth_session: {}, cannot reuse", session.getAuthSession());
                 throw new CertifyException("invalid_request",
@@ -258,17 +263,19 @@ public class IarPresentationService {
             log.info("Authorization code already exists for auth_session: {}, returning existing code", session.getAuthSession());
             return session.getAuthorizationCode();
         }
+        // Validate minimum length requirement
 
         if (authorizationCodeLength < 24) {
             throw new CertifyException("invalid_configuration",
                 "Authorization code length must be at least 24 characters. Current value: " + authorizationCodeLength);
         }
-
+        // Generate random bytes based on configured length
+        // For Base64 URL encoding, we need approximately 3/4 of the target length in bytes
         int byteLength = (int) Math.ceil(authorizationCodeLength * 0.75);
         byte[] randomBytes = new byte[byteLength];
         new java.security.SecureRandom().nextBytes(randomBytes);
         String encoded = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
-
+        // Ensure we have enough characters, pad if necessary
         if (encoded.length() < authorizationCodeLength) {
             byte[] additionalBytes = new byte[16];
             new java.security.SecureRandom().nextBytes(additionalBytes);

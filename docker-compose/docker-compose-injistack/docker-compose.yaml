@@ -9,8 +9,6 @@ services:
     volumes:
       - ./certify_init.sql:/docker-entrypoint-initdb.d/certify_init.sql
       - ./mimoto_init.sql:/docker-entrypoint-initdb.d/mimoto_init.sql
-        # verify_init.sql removed — verify tables are now created inside inji_certify DB
-      # as the inji-verify library is embedded in certify-service (shares the same datasource)
     networks:
       - network
     ports:
@@ -108,9 +106,6 @@ services:
       - mimoto-service
     networks:
       - network
-
-## verify-service container REMOVED — inji-verify is now embedded as a library inside certify-service.
-## Verify tables are created in inji_certify DB (certify schema) via certify_init.sql.
 
 networks:
   network:

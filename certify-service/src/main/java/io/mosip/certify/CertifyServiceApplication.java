@@ -42,8 +42,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
         "io.mosip.kernel.keymanagerservice.repository," +
         "io.mosip.kernel.keymanagerservice.entity," +
         "io.mosip.kernel.partnercertservice.helper," +
-        // Inji Verify library — service and repository beans only (not controllers/filters)
         "io.inji.verify.services," +
+        "io.inji.verify.key.impl," +
         "io.inji.verify.repository," +
         "${mosip.certify.integration.scan-base-package}")
 public class CertifyServiceApplication {
