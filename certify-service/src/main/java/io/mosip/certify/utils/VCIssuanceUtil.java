@@ -42,7 +42,7 @@ public class VCIssuanceUtil {
             }
         }
         catch (ParseException e) {
-            throw new CertifyException(VCIErrorConstants.INVALID_CREDENTIAL_REQUEST, "Error encountered during proof jwt parsing. aqhabqhs");
+            throw new CertifyException(VCIErrorConstants.INVALID_CREDENTIAL_REQUEST, "Error encountered during proof jwt parsing.");
         }
 
         if (proofJwtHasNonceClaim != hasNonceEndpoint) {
