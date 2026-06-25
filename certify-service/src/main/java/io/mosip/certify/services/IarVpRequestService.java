@@ -192,6 +192,9 @@ public class IarVpRequestService {
     }
 
     private void validateConfiguration() {
+        if (!StringUtils.hasText(vpRequestConfigUrl)) {
+            throw new IllegalStateException("mosip.certify.vp-request.config-file-url must be configured");
+        }
         if (!StringUtils.hasText(verifierClientId)) {
             throw new IllegalStateException("mosip.certify.verify.service.verifier-client-id must be configured");
         }

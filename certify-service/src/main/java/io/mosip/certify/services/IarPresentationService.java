@@ -81,7 +81,9 @@ public class IarPresentationService {
             submitVpToVerifier(session.getResponseUri(),
                              presentationRequest.getOpenid4vpPresentation(),
                              session.getRequestId(),
-                             session.getTransactionId());
+                             session.getTransactionId(),
+                             session.getClientId(),
+                             session.getVerifyNonce());
 
             VpVerificationResponse verificationResponse = getVpVerificationResult(session.getTransactionId());
 
@@ -124,7 +126,7 @@ public class IarPresentationService {
      * Submit VP presentation to the embedded inji-verify library.
      * responseUri is retained in the signature for session compatibility but is not used for HTTP.
      */
-    private void submitVpToVerifier(String responseUri, String vpPresentationJson, String requestId, String transactionId) throws CertifyException {
+    private void submitVpToVerifier(String responseUri, String vpPresentationJson, String requestId, String transactionId, String clientId, String nonce) throws CertifyException {
         log.info("Submitting VP to vpSubmissionService with state(requestId)={}, transactionId={}",
                 requestId, transactionId);
 
@@ -161,7 +163,7 @@ public class IarPresentationService {
             }
 
             log.debug("Calling vpSubmissionService.submit with state(requestId): {}", requestId);
-            ResponseEntity<?> submissionResponse = vpSubmissionService.submit(vpTokenJson, presentationSubmissionJson, requestId, null, null);
+            ResponseEntity<?> submissionResponse = vpSubmissionService.submit(vpTokenJson, presentationSubmissionJson, requestId, clientId, nonce);
 
             if (submissionResponse.getStatusCode().is2xxSuccessful()) {
                 log.info("VP submission accepted, status: {}", submissionResponse.getStatusCode());
@@ -239,12 +241,12 @@ public class IarPresentationService {
         if (vpResult.getCredentialResults() != null) {
             for (CredentialResultsDto credentialResult : vpResult.getCredentialResults()) {
                 Map<String, Object> credentialEntry = new HashMap<>();
-                credentialEntry.put("verifiableCredential", credentialResult.getVerifiableCredential());
+                credentialEntry.put("vc", credentialResult.getVerifiableCredential());
                 credentialEntry.put("allChecksSuccessful", credentialResult.isAllChecksSuccessful());
                 credentialResultsList.add(credentialEntry);
             }
         }
-        details.put("credentialResults", credentialResultsList);
+        details.put("vcResults", credentialResultsList);
         return details;
     }
 
