@@ -29,7 +29,7 @@ SET credential_format = 'vc+sd-jwt'
 WHERE credential_format = 'dc+sd-jwt';
 
 UPDATE certify.credential_config
-SET proof_types_supported = '{"jwt": {"proof_signing_alg_values_supported": ["RS256", "ES256", "PS256", "Ed25519"]}}'::jsonb
+SET proof_types_supported = '{}'::jsonb
 WHERE proof_types_supported = '{"jwt": {"proof_signing_alg_values_supported": ["RS256", "ES256", "PS256", "EdDSA"]}}'::jsonb;
 
 -- Replace EdDSA back to Ed25519 in existing JWT proof algorithm lists
