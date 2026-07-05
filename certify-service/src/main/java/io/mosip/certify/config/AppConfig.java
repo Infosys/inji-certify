@@ -87,7 +87,7 @@ public class AppConfig implements ApplicationRunner {
         return new RestTemplate(requestFactory);
     }
 
-    @Bean
+    @Bean("certifyPixelPass")
     public PixelPass pixelPass() {
         return new PixelPass();
     }

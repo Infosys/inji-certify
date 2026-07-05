@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EntityScan(basePackages = {
         "io.mosip.certify.entity",
         "io.mosip.kernel.keymanagerservice.entity",
-        "io.inji.verify.entity"
+        "io.inji.verify.models"
 })
 @SpringBootApplication(scanBasePackages = "io.mosip.certify," +
         "io.mosip.kernel.crypto," +
