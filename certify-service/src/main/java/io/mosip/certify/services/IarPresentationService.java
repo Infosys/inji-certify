@@ -163,7 +163,7 @@ public class IarPresentationService {
             }
 
             log.debug("Calling vpSubmissionService.submit with state(requestId): {}", requestId);
-            ResponseEntity<?> submissionResponse = vpSubmissionService.submit(vpTokenJson, presentationSubmissionJson, requestId, clientId, nonce);
+            ResponseEntity<?> submissionResponse = vpSubmissionService.submit(vpTokenJson, presentationSubmissionJson, requestId, null, null);
 
             if (submissionResponse.getStatusCode().is2xxSuccessful()) {
                 log.info("VP submission accepted, status: {}", submissionResponse.getStatusCode());
