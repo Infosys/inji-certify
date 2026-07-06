@@ -81,9 +81,7 @@ public class IarPresentationService {
             submitVpToVerifier(session.getResponseUri(),
                              presentationRequest.getOpenid4vpPresentation(),
                              session.getRequestId(),
-                             session.getTransactionId(),
-                             session.getClientId(),
-                             session.getVerifyNonce());
+                             session.getTransactionId());
 
             VpVerificationResponse verificationResponse = getVpVerificationResult(session.getTransactionId());
 
@@ -126,7 +124,7 @@ public class IarPresentationService {
      * Submit VP presentation to the embedded inji-verify library.
      * responseUri is retained in the signature for session compatibility but is not used for HTTP.
      */
-    private void submitVpToVerifier(String responseUri, String vpPresentationJson, String requestId, String transactionId, String clientId, String nonce) throws CertifyException {
+    private void submitVpToVerifier(String responseUri, String vpPresentationJson, String requestId, String transactionId) throws CertifyException {
         log.info("Submitting VP to vpSubmissionService with state(requestId)={}, transactionId={}",
                 requestId, transactionId);
 
