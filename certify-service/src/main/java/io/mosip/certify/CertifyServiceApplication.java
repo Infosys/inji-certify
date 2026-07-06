@@ -16,10 +16,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @EnableCaching
 @Import(io.inji.verify.config.AppConfig.class)
-@EntityScan(basePackages = {
-        "io.mosip.certify.entity",
-        "io.mosip.kernel.keymanagerservice.entity"
-})
 @SpringBootApplication(scanBasePackages = "io.mosip.certify," +
         "io.mosip.kernel.crypto," +
         "io.mosip.kernel.keymanager.hsm," +
