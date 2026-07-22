@@ -28,6 +28,7 @@ jobs:
     with:
       SERVICE_LOCATION: ./
       BUILD_ARTIFACT: inji-certify
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -139,6 +140,7 @@ jobs:
       SERVICE_LOCATION: ./certify-service-with-plugins
       BUILD_ARTIFACT: certify-service-with-plugins
       MAVEN_NON_EXEC_ARTIFACTS: "mock-certify-plugin.jar,mosip-identity-certify-plugin.jar,postgres-dataprovider-plugin.jar,sunbird-rc-certify-integration-impl.jar"
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -189,6 +191,7 @@ jobs:
     with:
       SERVICE_LOCATION: ./api-test
       BUILD_ARTIFACT: apitest-inji-certify
+      LICENSE_NAME: 'Apache 2.0'
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
