@@ -1,47 +1,6 @@
 {
-  "clientId": "injiverify.dev-int-inji.mosip.net/",
-  "nonce": "NkdHJkBIbdOdQaAjWm8gpA",
-  "responseCodeValidationRequired": false,
   "dcqlQuery": {
     "credentials": [
-      {
-        "id": "student_id_credential_query",
-        "format": "dc+sd-jwt",
-        "meta": {
-          "vct_values": [
-            "student_id_credential"
-          ]
-        },
-        "claims": [
-          {
-            "id": "last_name",
-            "path": [
-              "last_name"
-            ]
-          },
-          {
-            "id": "first_name",
-            "path": [
-              "first_name"
-            ]
-          },
-          {
-            "id": "given_name",
-            "path": [
-              "first_name"
-            ]
-          }
-        ],
-        "claim_sets": [
-          [
-            "first_name",
-            "last_name"
-          ],
-          [
-            "given_name"
-          ]
-        ]
-      },
       {
         "id": "mosip_verifiable_credential_id",
         "format": "ldp_vc",
