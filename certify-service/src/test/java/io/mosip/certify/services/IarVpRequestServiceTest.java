@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IarVpRequestServiceTest {
@@ -95,7 +96,20 @@ public class IarVpRequestServiceTest {
 
         Map<String, Object> result = (Map<String, Object>) iarVpRequestService.convertToOpenId4VpRequest(verifyResponse, iarRequest);
 
+        // Assert DCQL query is present and contains expected credential structure
         assertNotNull(result.get("dcql_query"));
+        Map<String, Object> dcqlQuery = (Map<String, Object>) result.get("dcql_query");
+        assertNotNull(dcqlQuery.get("credentials"));
+        
+        List<Map<String, Object>> credentials = (List<Map<String, Object>>) dcqlQuery.get("credentials");
+        assertEquals(1, credentials.size());
+        assertEquals("mosip_verifiable_credential_id", credentials.get(0).get("id"));
+        assertEquals("ldp_vc", credentials.get(0).get("format"));
+        
+        // Assert PE field is NOT present (removed in DCQL implementation)
+        assertNull(result.get("presentation_definition"));
+        
+        // Assert other required fields
         assertEquals("http://localhost:8090/v1/certify/oauth/iae", result.get("response_uri"));
         assertEquals("test-nonce", result.get("nonce"));
     }

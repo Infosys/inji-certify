@@ -162,7 +162,12 @@ class OAuthControllerTest {
                 .param("code_challenge", "test-challenge")
                 .param("code_challenge_method", "S256")
                 .param("redirect_uri", "https://test.com/callback"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("require_interaction"))
+                .andExpect(jsonPath("$.openid4vp_request.dcql_query").exists())
+                .andExpect(jsonPath("$.openid4vp_request.dcql_query.credentials[0].id").value("mosip_verifiable_credential_id"))
+                .andExpect(jsonPath("$.openid4vp_request.dcql_query.credentials[0].format").value("ldp_vc"))
+                .andExpect(jsonPath("$.openid4vp_request.presentation_definition").doesNotExist());
 
         verify(iarService, times(1)).handleIarRequest(any(IarRequest.class));
     }
