@@ -782,9 +782,12 @@ class OAuthControllerTest {
             openId4VpRequest.put("response_mode", "iae_post.jwt");
             openId4VpRequest.put("client_id", "test-client");
             
-            PresentationDefinition presentationDefinition = new PresentationDefinition();
-            presentationDefinition.setId("test-presentation");
-            openId4VpRequest.put("presentation_definition", presentationDefinition);
+            Map<String, Object> dcqlQuery = new HashMap<>();
+            dcqlQuery.put("credentials", List.of(Map.of(
+                    "id", "mosip_verifiable_credential_id",
+                    "format", "ldp_vc"
+            )));
+            openId4VpRequest.put("dcql_query", dcqlQuery);
             
             response.setOpenid4vpRequest(openId4VpRequest);
         }

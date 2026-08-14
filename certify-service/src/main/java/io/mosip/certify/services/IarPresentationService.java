@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.inji.verify.dto.result.CredentialResultsDto;
 import io.inji.verify.dto.result.VPVerificationResultDto;
 import io.inji.verify.dto.result.VerificationRequestDto;
+import io.inji.verify.models.AuthorizationRequestCreateResponse;
 import io.inji.verify.services.VerifiablePresentationRequestService;
 import io.inji.verify.services.VerifiablePresentationSubmissionService;
 import io.mosip.certify.core.constants.ErrorConstants;
@@ -22,7 +23,6 @@ import io.mosip.certify.repository.IarSessionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -121,7 +121,8 @@ public class IarPresentationService {
     }
 
     /**
-     * Submit VP presentation to the embedded inji-verify library.
+     * Submit VP presentation to the embedded inji-verify library using DCQL format.
+     * In DCQL mode, only vp_token and state are required — no presentation_submission.
      * responseUri is retained in the signature for session compatibility but is not used for HTTP.
      */
     private void submitVpToVerifier(String responseUri, String vpPresentationJson, String requestId, String transactionId) throws CertifyException {
@@ -137,12 +138,6 @@ public class IarPresentationService {
                 throw new CertifyException("vp_submission_failed", "Missing vp_token in VP presentation");
             }
 
-            Object presentationSubmissionObj = vpPresentationData.get("presentation_submission");
-            if (presentationSubmissionObj == null) {
-                log.error("Missing presentation_submission in wallet's VP presentation");
-                throw new CertifyException("vp_submission_failed", "Missing presentation_submission in VP presentation");
-            }
-
             String vpTokenJson;
             if (vpTokenObj instanceof String vpTokenString) {
                 vpTokenJson = vpTokenString;
@@ -152,24 +147,27 @@ public class IarPresentationService {
                 log.debug("vp_token serialized to JSON, length: {}", vpTokenJson.length());
             }
 
-            String presentationSubmissionJson;
-            if (presentationSubmissionObj instanceof String presentationSubmissionString) {
-                presentationSubmissionJson = presentationSubmissionString;
-            } else {
-                presentationSubmissionJson = objectMapper.writeValueAsString(presentationSubmissionObj);
-                log.debug("presentation_submission serialized to JSON, length: {}", presentationSubmissionJson.length());
+            // Retrieve the authorization request from the verify library
+            AuthorizationRequestCreateResponse authRequestCreateResponse = vpSubmissionService.getAuthRequest(requestId);
+            if (authRequestCreateResponse == null) {
+                throw new CertifyException("vp_submission_failed", "No matching VP request found for state: " + requestId);
             }
 
-            log.debug("Calling vpSubmissionService.submit with state(requestId): {}", requestId);
-            ResponseEntity<?> submissionResponse = vpSubmissionService.submit(vpTokenJson, presentationSubmissionJson, requestId, null, null);
+            log.debug("Calling vpSubmissionService.submitVpToken with state(requestId): {}", requestId);
+            vpSubmissionService.submitVpToken(
+                    authRequestCreateResponse.getAuthorizationDetails(),
+                    vpTokenJson,
+                    requestId,
+                    null,
+                    null,
+                    null,
+                    null
+            );
 
-            if (submissionResponse.getStatusCode().is2xxSuccessful()) {
-                log.info("VP submission accepted, status: {}", submissionResponse.getStatusCode());
-            } else {
-                log.warn("VP submission returned non-success status: {}", submissionResponse.getStatusCode());
-                throw new CertifyException("vp_submission_failed",
-                    "VP submission failed with status: " + submissionResponse.getStatusCode());
-            }
+            // Notify status listeners after submission
+            vpRequestService.invokeVpRequestStatusListener(requestId);
+
+            log.info("VP submission accepted for requestId: {}", requestId);
 
         } catch (CertifyException e) {
             throw e;
