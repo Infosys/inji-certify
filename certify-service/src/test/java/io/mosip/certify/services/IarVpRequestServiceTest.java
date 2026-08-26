@@ -90,7 +90,7 @@ public class IarVpRequestServiceTest {
     }
 
     @Test
-    public void should_embedDcqlQueryInOpenId4VpRequest() {
+    public void should_embedDcqlQuery_when_convertingOpenId4VpRequest() {
         VerifyVpResponse verifyResponse = buildVerifyVpResponse("direct_post");
         InteractiveAuthorizationRequest iarRequest = buildIarRequest();
 
