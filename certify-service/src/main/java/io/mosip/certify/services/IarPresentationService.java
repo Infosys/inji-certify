@@ -142,7 +142,7 @@ public class IarPresentationService {
             }
 
             log.debug("Calling vpSubmissionService.submitVerifiablePresentation with state(requestId): {}", requestId);
-            vpSubmissionService.submitVerifiablePresentation(vpTokenJson, requestId, null, null);
+            vpSubmissionService.submitVerifiablePresentation(vpTokenJson, requestId, null, null, Optional.empty());
 
             log.info("VP submission accepted for requestId: {}", requestId);
 

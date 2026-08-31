@@ -26,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Service for creating VP requests via the embedded inji-verify library.
@@ -119,7 +120,7 @@ public class IarVpRequestService {
             );
 
             log.debug("Calling inji-verify library createAuthorizationRequest for verifier client_id: {}", effectiveClientId);
-            VPRequestResponseDto vpAuthRequest = vpRequestService.createAuthorizationRequest(vpRequestCreateDto);
+            VPRequestResponseDto vpAuthRequest = vpRequestService.createAuthorizationRequest(vpRequestCreateDto, Optional.empty());
 
             if (vpAuthRequest == null) {
                 throw new CertifyException("unknown_error", "Empty response from inji-verify library");
