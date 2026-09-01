@@ -11,35 +11,7 @@
               "https://example.org/credentials#MOSIPVerifiableCredential"
             ]
           ]
-        },
-        "claims": [
-          {
-            "id": "male_gender",
-            "path": [
-              "gender",
-              null,
-              "value"
-            ],
-            "values": ["MLE"]
-          },
-          {
-            "id": "full_name_eng",
-            "path": [
-              "fullName",
-              0,
-              "language"
-            ]
-          }
-        ],
-        "claim_sets": [
-          [
-            "male_gender",
-            "full_name_eng"
-          ],
-          [
-            "full_name_eng"
-          ]
-        ]
+        }
       }
     ],
     "credential_sets": [
