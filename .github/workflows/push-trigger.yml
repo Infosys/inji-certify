@@ -309,6 +309,9 @@ jobs:
           sed -i 's|db-port=.*|db-port=5432|' api-test/target/config/injiCertify.properties
           sed -i 's|useCaseToExecute=.*|useCaseToExecute=mock|' api-test/target/config/injiCertify.properties
           sed -i 's|eSignetbaseurl=.*|eSignetbaseurl=https://esignet-mock.released.mosip.net|' api-test/target/config/injiCertify.properties
+          touch application.properties
+          mkdir -p "Biometric Devices"
+          mkdir -p resource
 
       - name: Build apitest image
         run: docker build -t apitest-inji-certify:ci -f api-test/Dockerfile .
