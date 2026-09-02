@@ -293,6 +293,9 @@ jobs:
           cd api-test
           mvn clean package -s $GITHUB_WORKSPACE/settings.xml
 
+      - name: Verify certify-service jar exists
+        run: ls certify-service/target/certify-service-*.jar
+
       - name: Build certify-service image
         run: docker build -t inji-certify:ci ./certify-service
 
@@ -312,6 +315,12 @@ jobs:
 
       - name: Start Full Stack
         run: docker compose -f docker-compose/docker-compose-injistack/docker-compose-ci.yaml up -d database certify certify-nginx
+
+      - name: Show container status
+        if: always()
+        run: |
+          docker compose -f docker-compose/docker-compose-injistack/docker-compose-ci.yaml ps -a
+          docker images | grep -E "inji-certify|apitest|postgres|nginx" || true
 
       - name: Wait for Service
         run: |
@@ -362,7 +371,7 @@ jobs:
 
       - name: Print certify logs
         if: always()
-        run: docker logs certify
+        run: docker logs certify || echo "Certify container was never created — check earlier steps"
 
       - name: Print all service logs
         if: always()
