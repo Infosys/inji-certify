@@ -22,7 +22,6 @@ services:
     user: root
     ports:
       - "8090:8090"
-      - "9010:9010"
     environment:
       - container_user=mosip
       - active_profile_env=default,csvdp-farmer
@@ -36,14 +35,13 @@ services:
       - ./config/certify-csvdp-farmer.properties:/home/mosip/config/certify-csvdp-farmer.properties
       - ./data/CERTIFY_PKCS12:/home/mosip/CERTIFY_PKCS12
       - ./config/farmer_identity_data.csv:/home/mosip/config/farmer_identity_data.csv
-      - ./config/mock_identity_data.csv:/home/mosip/config/mock_identity_data.csv
       - ./config/vp_request_config.json:/home/mosip/config/vp_request_config.json
-      - ./context/farmer.json:/home/mosip/config/farmer.json
+      - ./context/farmer-context.json:/home/mosip/config/farmer-context.json
     depends_on:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:9010/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8090/v1/certify/.well-known/openid-credential-issuer || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -60,7 +58,7 @@ services:
       - ./config/mimoto-trusted-verifiers.json:/config/server/mimoto-trusted-verifiers.json
       - ./config/credential-template.html:/config/server/credential-template.html
       - ./config/vp_request_config.json:/config/server/vp_request_config.json
-      - ./context/farmer.json:/config/server/farmer.json
+      - ./context/farmer-context.json:/config/server/farmer-context.json
     depends_on:
       - certify
 
