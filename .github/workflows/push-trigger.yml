@@ -299,6 +299,19 @@ jobs:
       - name: Build certify-service image
         run: docker build -t inji-certify:ci ./certify-service
 
+      - name: Download plugin JARs
+        run: |
+          cd certify-service-with-plugins
+          mvn clean package -DskipTests -s $GITHUB_WORKSPACE/settings.xml
+
+      - name: Bundle plugins into certify image
+        run: |
+          printf 'FROM inji-certify:ci\nCOPY target/*.jar ${loader_path_env}\n' \
+            > certify-service-with-plugins/Dockerfile.ci
+          docker build -t inji-certify:ci \
+            -f certify-service-with-plugins/Dockerfile.ci \
+            certify-service-with-plugins
+
       - name: Prepare apitest build context
         run: |
           cp api-test/entrypoint.sh .
