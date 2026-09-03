@@ -341,12 +341,15 @@ jobs:
       - name: Wait for Service
         run: |
           for i in {1..30}; do
-            if curl -s http://localhost:8090/v1/certify/actuator/health | grep UP; then
+            STATUS=$(curl -s http://localhost:9010/actuator/health | grep -o '"status":"UP"' || true)
+            if [ -n "$STATUS" ]; then
               echo "Certify is UP"
               exit 0
             fi
+            echo "[$i/30] Not ready yet, sleeping 10s..."
             sleep 10
           done
+          echo "Certify did not become healthy in time"
           exit 1
 
       - name: Run API Tests
