@@ -142,6 +142,9 @@ public class IarPresentationService {
             }
 
             log.debug("Calling vpSubmissionService.submitVerifiablePresentation with state(requestId): {}", requestId);
+            // Positional args (verify-core signature): vpToken, state, error, errorDescription, submissionOrigin.
+            // error/errorDescription are null — this is a success submission, not a wallet-side failure report.
+            // submissionOrigin is Optional.empty() because Certify uses direct_post, not DC API.
             vpSubmissionService.submitVerifiablePresentation(vpTokenJson, requestId, null, null, Optional.empty());
 
             log.info("VP submission accepted for requestId: {}", requestId);

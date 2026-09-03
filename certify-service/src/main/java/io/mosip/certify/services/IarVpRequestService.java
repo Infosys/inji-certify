@@ -105,21 +105,44 @@ public class IarVpRequestService {
         }
 
         try {
-            // Use config-level overrides if present (local testing with hardcoded vp_tokens),
-            // otherwise fall back to property/defaults (production with real wallet flow)
-            String effectiveClientId = StringUtils.hasText(verifyServiceConfig.getClientId())
-                    ? verifyServiceConfig.getClientId() : verifierClientId;
-            String effectiveNonce = verifyServiceConfig.getNonce();
+            // Config-level clientId/nonce overrides are honored ONLY on the local profile so that
+            // local end-to-end testing works against a hardcoded sample VP token. On every other
+            // profile the overrides are ignored (with a WARN) so the verify library generates its
+            // own nonce and VP replay protection is preserved.
+            boolean localProfile = activeProfile != null && activeProfile.contains("local");
+            boolean overridePresent = StringUtils.hasText(verifyServiceConfig.getClientId())
+                    || StringUtils.hasText(verifyServiceConfig.getNonce());
+
+            String effectiveClientId = verifierClientId;
+            String effectiveNonce = null;
+
+            if (overridePresent) {
+                if (localProfile) {
+                    if (StringUtils.hasText(verifyServiceConfig.getClientId())) {
+                        effectiveClientId = verifyServiceConfig.getClientId();
+                    }
+                    if (StringUtils.hasText(verifyServiceConfig.getNonce())) {
+                        effectiveNonce = verifyServiceConfig.getNonce();
+                    }
+                    log.info("Local profile active — using hardcoded clientId/nonce from vp_request_config_local for deterministic testing.");
+                } else {
+                    log.warn("VP request configuration contains a hardcoded clientId/nonce but the active profile is '{}'. " +
+                            "Hardcoded values are ignored outside the 'local' profile to preserve VP replay protection. " +
+                            "Remove them from the deployed vp_request_config.json.", activeProfile);
+                }
+            }
 
             VPRequestCreateDto vpRequestCreateDto = new VPRequestCreateDto(
                     effectiveClientId,
-                    null,
-                    effectiveNonce,
+                    null,               // transactionId — let verify-core generate one
+                    effectiveNonce,     // null outside local profile → verify-core generates a fresh nonce
                     dcqlQuery,
-                    false
+                    false               // responseCodeValidationRequired — Certify doesn't use verify-core's response_code flow
             );
 
             log.debug("Calling inji-verify library createAuthorizationRequest for verifier client_id: {}", effectiveClientId);
+            // submissionOrigin is only needed for the DC API flow (Origin/Referer echoed into expected_origins);
+            // Certify uses direct_post, so pass Optional.empty().
             VPRequestResponseDto vpAuthRequest = vpRequestService.createAuthorizationRequest(vpRequestCreateDto, Optional.empty());
 
             if (vpAuthRequest == null) {
