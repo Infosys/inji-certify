@@ -109,10 +109,11 @@ public class InjiTestRunner {
 				AdminTestUtil.getRequiredField();
 			}
 
-			BaseTestCase.getLanguageList();
+			if (!"true".equals(System.getenv("CI"))) {
+				BaseTestCase.getLanguageList();
+				InjiCertifyUtil.configureOtp();
+			}
 			InjiCertifyUtil.getSupportedCredentialSigningAlg();
-
-			InjiCertifyUtil.configureOtp();
 
 			generateDependency = InjiCertifyConfigManager.getproperty("generateDependencyJson");
 
