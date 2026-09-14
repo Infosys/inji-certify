@@ -88,7 +88,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void toEntity_fullyPopulated_mapsAllFields() {
+    public void should_mapAllFields_when_toEntityWithFullyPopulatedDto() {
         CredentialConfigurationDTO dto = buildFullDto();
 
         CredentialConfig entity = mapper.toEntity(dto);
@@ -135,7 +135,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void toDto_fullyPopulated_mapsAllFields() {
+    public void should_mapAllFields_when_toDtoWithFullyPopulatedEntity() {
         CredentialConfig entity = mapper.toEntity(buildFullDto());
 
         CredentialConfigurationDTO dto = mapper.toDto(entity);
@@ -162,7 +162,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void updateEntityFromDto_onEmptyEntity_populatesFields() {
+    public void should_populateFields_when_updateEntityFromDtoOnEmptyEntity() {
         CredentialConfig entity = new CredentialConfig();
         CredentialConfigurationDTO dto = buildFullDto();
 
@@ -177,7 +177,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void updateEntityFromDto_onEntityWithExistingCollections_replacesThem() {
+    public void should_replaceCollections_when_updateEntityFromDtoOnEntityWithExistingCollections() {
         // Pre-populate the entity so the "clear + putAll/addAll" branches are exercised
         CredentialConfig entity = mapper.toEntity(buildFullDto());
         assertNotNull(entity.getDisplay());
@@ -202,7 +202,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void updateEntityFromDto_withNullCollectionsOnPopulatedEntity_setsNull() {
+    public void should_setNull_when_updateEntityFromDtoWithNullCollections() {
         CredentialConfig entity = mapper.toEntity(buildFullDto());
 
         CredentialConfigurationDTO dto = new CredentialConfigurationDTO();
@@ -222,7 +222,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void nullInputs_returnNullOrNoop() {
+    public void should_returnNullOrNoop_when_inputsAreNull() {
         assertNull(mapper.toEntity((CredentialConfigurationDTO) null));
         assertNull(mapper.toDto((CredentialConfig) null));
         assertNull(mapper.toEntity((ClaimsDisplayFieldsConfigDTO) null));
@@ -235,7 +235,7 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void claimsDisplayFieldsConfig_roundTrip() {
+    public void should_roundTrip_when_claimsDisplayFieldsConfigIsMapped() {
         ClaimsDisplayFieldsConfigDTO dto = new ClaimsDisplayFieldsConfigDTO(
                 List.of(new ClaimsDisplayFieldsConfigDTO.Display("Name", "en")));
 
@@ -249,27 +249,27 @@ public class CredentialConfigMapperTest {
     }
 
     @Test
-    public void listToCommaSeparatedString_variants() {
+    public void should_convertList_when_listToCommaSeparatedStringVariants() {
         assertNull(mapper.listToCommaSeparatedString(null));
         assertNull(mapper.listToCommaSeparatedString(List.of()));
         assertEquals("a,b,c", mapper.listToCommaSeparatedString(List.of("c", "a", "b")));
     }
 
     @Test
-    public void commaSeparatedStringToList_variants() {
+    public void should_convertString_when_commaSeparatedStringToListVariants() {
         assertTrue(mapper.commaSeparatedStringToList(null).isEmpty());
         assertTrue(mapper.commaSeparatedStringToList("").isEmpty());
         assertEquals(List.of("a", "b", "c"), mapper.commaSeparatedStringToList(" a , b ,c"));
     }
 
     @Test
-    public void mapClaims_nullReturnsNull() {
+    public void should_returnNull_when_mapClaimsInputIsNull() {
         assertNull(mapper.mapClaims(null));
         assertNull(mapper.mapClaimsToDto(null));
     }
 
     @Test
-    public void mapClaims_roundTrip() {
+    public void should_roundTrip_when_mapClaimsIsUsed() {
         Map<String, Map<String, ClaimsDisplayFieldsConfigDTO>> source = Map.of(
                 "ns", Map.of("field", new ClaimsDisplayFieldsConfigDTO(
                         List.of(new ClaimsDisplayFieldsConfigDTO.Display("Field", "en")))));

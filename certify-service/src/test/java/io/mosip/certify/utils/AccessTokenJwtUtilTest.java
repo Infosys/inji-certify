@@ -60,7 +60,7 @@ public class AccessTokenJwtUtilTest {
     }
 
     @Test
-    public void generateSignedJwt_fromRawParams_success() {
+    public void should_returnSignedJwt_when_rawParametersAreValid() {
         String jwt = accessTokenJwtUtil.generateSignedJwt(
                 "subject-data", "test_scope", "client-123",
                 "https://issuer", "https://audience", 300);
@@ -68,7 +68,7 @@ public class AccessTokenJwtUtilTest {
     }
 
     @Test
-    public void generateSignedJwt_fromRawParams_nullClientId_success() {
+    public void should_returnSignedJwt_when_clientIdIsNull() {
         String jwt = accessTokenJwtUtil.generateSignedJwt(
                 "subject-data", "test_scope", null,
                 "https://issuer", "https://audience", 300);
@@ -76,14 +76,14 @@ public class AccessTokenJwtUtilTest {
     }
 
     @Test
-    public void generateSignedJwt_fromSession_success() {
+    public void should_returnSignedJwt_when_sessionIsValid() {
         String jwt = accessTokenJwtUtil.generateSignedJwt(
                 session("subject-data", "test_scope"), "https://issuer", "https://audience", 300);
         assertEquals("signed.jwt.token", jwt);
     }
 
     @Test
-    public void generateSignedJwt_buildsRequestWithRs256AndCorrectAppId() {
+    public void should_buildRequestWithRs256AndCorrectAppId_when_generatingJwt() {
         ArgumentCaptor<JWSSignatureRequestDto> captor = ArgumentCaptor.forClass(JWSSignatureRequestDto.class);
 
         accessTokenJwtUtil.generateSignedJwt(
@@ -98,7 +98,7 @@ public class AccessTokenJwtUtilTest {
     }
 
     @Test
-    public void generateSignedJwt_missingIdentityData_throws() {
+    public void should_throwCertifyException_when_identityDataIsMissing() {
         CertifyException ex = assertThrows(CertifyException.class, () ->
                 accessTokenJwtUtil.generateSignedJwt("", "test_scope", "client-123",
                         "https://issuer", "https://audience", 300));
@@ -106,28 +106,28 @@ public class AccessTokenJwtUtilTest {
     }
 
     @Test
-    public void generateSignedJwt_missingScope_throws() {
+    public void should_throwCertifyException_when_scopeIsMissing() {
         assertThrows(CertifyException.class, () ->
                 accessTokenJwtUtil.generateSignedJwt("subject-data", "", "client-123",
                         "https://issuer", "https://audience", 300));
     }
 
     @Test
-    public void generateSignedJwt_fromSession_missingIdentityData_throws() {
+    public void should_throwCertifyException_when_sessionIdentityDataIsMissing() {
         assertThrows(CertifyException.class, () ->
                 accessTokenJwtUtil.generateSignedJwt(session(null, "test_scope"),
                         "https://issuer", "https://audience", 300));
     }
 
     @Test
-    public void generateSignedJwt_fromSession_missingScope_throws() {
+    public void should_throwCertifyException_when_sessionScopeIsMissing() {
         assertThrows(CertifyException.class, () ->
                 accessTokenJwtUtil.generateSignedJwt(session("subject-data", null),
                         "https://issuer", "https://audience", 300));
     }
 
     @Test
-    public void generateSignedJwt_serializationFailure_wrappedAsUnknownError() throws Exception {
+    public void should_wrapAsUnknownError_when_serializationFails() throws Exception {
         when(objectMapper.writeValueAsString(any())).thenThrow(new JsonProcessingException("boom") {});
         CertifyException ex = assertThrows(CertifyException.class, () ->
                 accessTokenJwtUtil.generateSignedJwt("subject-data", "test_scope", "client-123",

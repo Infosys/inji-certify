@@ -22,10 +22,17 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class SDJsonUtilsTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
+public class SDJsonUtilsTest {
+
+    @Test
     public void testGetLeafNodeName() {
 
       String path1 = "$.store.book[0].author";  // Should return "author"
@@ -39,6 +46,7 @@ public class SDJsonUtilsTest extends TestCase {
         assertEquals("book", SDJsonUtils.getLeafNodeName(path4));      
     }
 
+    @Test
     public void testCompareJsonPaths() {
       String path1 = "$.store.book.author";
       String path2 = "$.store.book.author";
@@ -79,6 +87,7 @@ public class SDJsonUtilsTest extends TestCase {
       assertTrue(SDJsonUtils.compareJsonPaths(path1, path2));
     }
 
+    @Test
     public void testConstructSDPayload(){
       // Create the input JSONNode from the provided JSON
       ObjectNode node = JsonNodeFactory.instance.objectNode();
@@ -192,6 +201,7 @@ public class SDJsonUtilsTest extends TestCase {
       assertTrue(mobilePhoneObject.containsKey("number"));
     }
 
+  @Test
   public void testConstructSDPayload_WildcardPatterns(){
     // Create the input JSONNode from the provided JSON
     ObjectNode node = JsonNodeFactory.instance.objectNode();
@@ -262,7 +272,7 @@ public class SDJsonUtilsTest extends TestCase {
     assertFalse(mobilePhoneObject.containsKey("number"));
   }
 
-  @org.junit.Test
+  @Test
   public void should_validatePath_when_validAndInvalidPaths() {
       ObjectNode node = JsonNodeFactory.instance.objectNode();
       node.put("name", "John");
@@ -304,12 +314,14 @@ public class SDJsonUtilsTest extends TestCase {
       assertFalse(SDJsonUtils.isPathValid(node, "$.address...city"));
   }
 
-  public void testGetLeafNodeName_nullOrEmpty_returnsNull() {
+  @Test
+  public void should_returnNull_when_leafNodeNameInputIsNullOrEmpty() {
       assertNull(SDJsonUtils.getLeafNodeName(null));
       assertNull(SDJsonUtils.getLeafNodeName("   "));
   }
 
-  public void testIsPathValid_nullEmptyAndMalformed() {
+  @Test
+  public void should_returnFalse_when_pathIsNullEmptyOrMalformed() {
       ObjectNode node = JsonNodeFactory.instance.objectNode();
       node.put("name", "x");
       assertFalse(SDJsonUtils.isPathValid(node, null));
@@ -318,12 +330,14 @@ public class SDJsonUtilsTest extends TestCase {
       assertTrue(SDJsonUtils.isPathValid(node, "$"));
   }
 
-  public void testAnyMatch_returnsFalseForNoMatch() {
+  @Test
+  public void should_matchPatterns_when_anyMatchEvaluated() {
       assertFalse(SDJsonUtils.anyMatch("$.a.b", Arrays.asList("$.x.y", "$.p.q")));
       assertTrue(SDJsonUtils.anyMatch("$.a.b", Arrays.asList("$.x.y", "$.a.*")));
   }
 
-  public void testConstructSDPayload_wholeArrayAsSD() {
+  @Test
+  public void should_discloseWholeArray_when_arrayPathIsSelectivelyDisclosable() {
       ObjectNode node = JsonNodeFactory.instance.objectNode();
       ArrayNode numbers = JsonNodeFactory.instance.arrayNode();
       numbers.add(1);
@@ -341,7 +355,8 @@ public class SDJsonUtilsTest extends TestCase {
       assertFalse(disclosures.isEmpty());
   }
 
-  public void testConstructSDPayload_nestedArrayOfObjects() {
+  @Test
+  public void should_discloseNestedField_when_arrayOfObjectsHasSdPath() {
       ObjectNode node = JsonNodeFactory.instance.objectNode();
       ArrayNode people = JsonNodeFactory.instance.arrayNode();
       ObjectNode p1 = JsonNodeFactory.instance.objectNode();

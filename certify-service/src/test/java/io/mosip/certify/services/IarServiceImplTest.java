@@ -92,7 +92,7 @@ public class IarServiceImplTest {
     // ---------- handleIarRequest ----------
 
     @Test
-    public void handleIarRequest_initial_generatesVpRequest() {
+    public void should_generateVpRequest_when_initialRequest() {
         when(iarSessionService.generateAuthSession()).thenReturn("auth-session-1");
         VerifyVpResponse verifyResponse = new VerifyVpResponse();
         verifyResponse.setTransactionId("txn-1");
@@ -110,7 +110,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void handleIarRequest_presentation_delegatesToPresentationService() {
+    public void should_delegateToPresentationService_when_presentationSubmitted() {
         IarRequest request = new IarRequest();
         request.setAuth_session("auth-1");
         request.setOpenid4vp_response("{vp}");
@@ -123,14 +123,14 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void handleIarRequest_onlyAuthSession_throwsInvalidRequest() {
+    public void should_throwInvalidRequest_when_onlyAuthSessionProvided() {
         IarRequest request = new IarRequest();
         request.setAuth_session("auth-1");
         assertThrows(InvalidRequestException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_onlyVp_throwsInvalidRequest() {
+    public void should_throwInvalidRequest_when_onlyVpProvided() {
         IarRequest request = new IarRequest();
         request.setOpenid4vp_response("{vp}");
         assertThrows(InvalidRequestException.class, () -> iarService.handleIarRequest(request));
@@ -139,42 +139,42 @@ public class IarServiceImplTest {
     // ---------- validateIarRequest ----------
 
     @Test
-    public void handleIarRequest_badResponseType_throws() {
+    public void should_throwException_when_responseTypeIsInvalid() {
         IarRequest request = validInitialRequest();
         request.setResponse_type("token");
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_missingClientId_throws() {
+    public void should_throwException_when_clientIdMissing() {
         IarRequest request = validInitialRequest();
         request.setClient_id("");
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_missingCodeChallenge_throws() {
+    public void should_throwException_when_codeChallengeMissing() {
         IarRequest request = validInitialRequest();
         request.setCode_challenge("");
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_badCodeChallengeMethod_throws() {
+    public void should_throwException_when_codeChallengeMethodInvalid() {
         IarRequest request = validInitialRequest();
         request.setCode_challenge_method("plain");
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_missingInteractionType_throws() {
+    public void should_throwException_when_interactionTypeMissing() {
         IarRequest request = validInitialRequest();
         request.setInteraction_types_supported("some_other_type");
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_emptyInteractionType_usesDefault() {
+    public void should_useDefault_when_interactionTypeEmpty() {
         IarRequest request = validInitialRequest();
         request.setInteraction_types_supported("");
         when(iarSessionService.generateAuthSession()).thenReturn("auth-session-1");
@@ -189,14 +189,14 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void handleIarRequest_missingAuthorizationDetails_throws() {
+    public void should_throwException_when_authorizationDetailsMissing() {
         IarRequest request = validInitialRequest();
         request.setAuthorization_details(Collections.emptyList());
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(request));
     }
 
     @Test
-    public void handleIarRequest_authDetailMissingType_throws() {
+    public void should_throwException_when_authDetailTypeMissing() {
         IarRequest request = validInitialRequest();
         AuthorizationDetail detail = new AuthorizationDetail();
         detail.setCredentialConfigurationId("cred-config-1");
@@ -205,7 +205,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void handleIarRequest_authDetailWrongType_throws() {
+    public void should_throwException_when_authDetailTypeWrong() {
         IarRequest request = validInitialRequest();
         AuthorizationDetail detail = new AuthorizationDetail();
         detail.setType("wrong_type");
@@ -215,7 +215,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void handleIarRequest_authDetailMissingConfigId_throws() {
+    public void should_throwException_when_authDetailConfigIdMissing() {
         IarRequest request = validInitialRequest();
         AuthorizationDetail detail = new AuthorizationDetail();
         detail.setType("openid_credential");
@@ -224,7 +224,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void handleIarRequest_vpRequestGenerationFails_throws() {
+    public void should_throwException_when_vpRequestGenerationFails() {
         when(iarSessionService.generateAuthSession()).thenReturn("auth-session-1");
         when(iarVpRequestService.createVpRequest(any())).thenThrow(new RuntimeException("verify down"));
         assertThrows(CertifyException.class, () -> iarService.handleIarRequest(validInitialRequest()));
@@ -253,7 +253,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_success() {
+    public void should_returnToken_when_tokenRequestIsValid() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(iarSessionRepository.findByAuthorizationCode("iar_auth_abc123"))
                 .thenReturn(Optional.of(sessionForToken()));
@@ -271,7 +271,7 @@ public class IarServiceImplTest {
 
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public void processTokenRequest_constraintViolations_throws() {
+    public void should_throwException_when_tokenRequestHasConstraintViolations() {
         ConstraintViolation<OAuthTokenRequest> violation = mock(ConstraintViolation.class);
         java.util.Set violations = new java.util.HashSet();
         violations.add(violation);
@@ -281,7 +281,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_unsupportedGrantType_throws() {
+    public void should_throwException_when_grantTypeUnsupported() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         OAuthTokenRequest request = validTokenRequest();
         request.setGrant_type("client_credentials");
@@ -289,7 +289,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_missingCode_throws() {
+    public void should_throwException_when_authorizationCodeMissing() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         OAuthTokenRequest request = validTokenRequest();
         request.setCode("");
@@ -297,7 +297,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_badCodePrefix_throws() {
+    public void should_throwException_when_codePrefixInvalid() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         OAuthTokenRequest request = validTokenRequest();
         request.setCode("wrong_prefix_code");
@@ -305,14 +305,14 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_codeNotFound_throws() {
+    public void should_throwException_when_codeNotFound() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(iarSessionRepository.findByAuthorizationCode(anyString())).thenReturn(Optional.empty());
         assertThrows(CertifyException.class, () -> iarService.processTokenRequest(validTokenRequest()));
     }
 
     @Test
-    public void processTokenRequest_codeAlreadyUsed_throws() {
+    public void should_throwException_when_codeAlreadyUsed() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         IarSession session = sessionForToken();
         session.setIsCodeUsed(true);
@@ -321,7 +321,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_codeExpired_throws() {
+    public void should_throwException_when_codeExpired() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         IarSession session = sessionForToken();
         session.setCodeIssuedAt(LocalDateTime.now().minusMinutes(30));
@@ -330,7 +330,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_missingCodeVerifier_throws() {
+    public void should_throwException_when_codeVerifierMissing() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(iarSessionRepository.findByAuthorizationCode(anyString())).thenReturn(Optional.of(sessionForToken()));
         OAuthTokenRequest request = validTokenRequest();
@@ -339,7 +339,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_missingPkceInSession_throws() {
+    public void should_throwException_when_pkceMissingInSession() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         IarSession session = sessionForToken();
         session.setCodeChallenge(null);
@@ -348,7 +348,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_pkceMismatch_throws() {
+    public void should_throwException_when_pkceMismatch() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         IarSession session = sessionForToken();
         session.setCodeChallenge("some_other_challenge");
@@ -357,7 +357,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_markAsUsedReturnsZero_throws() {
+    public void should_throwException_when_markAsUsedReturnsZero() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(iarSessionRepository.findByAuthorizationCode(anyString())).thenReturn(Optional.of(sessionForToken()));
         when(iarSessionRepository.markAuthorizationCodeAsUsed(anyString(), any())).thenReturn(0);
@@ -365,7 +365,7 @@ public class IarServiceImplTest {
     }
 
     @Test
-    public void processTokenRequest_tokenGenerationFails_throws() {
+    public void should_throwException_when_tokenGenerationFails() {
         when(validator.validate(any())).thenReturn(Collections.emptySet());
         when(iarSessionRepository.findByAuthorizationCode(anyString())).thenReturn(Optional.of(sessionForToken()));
         when(iarSessionRepository.markAuthorizationCodeAsUsed(anyString(), any())).thenReturn(1);

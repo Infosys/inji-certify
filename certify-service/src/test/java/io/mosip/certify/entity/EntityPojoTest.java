@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 public class EntityPojoTest {
 
     @Test
-    public void credentialStatusTransaction_gettersSettersAndLifecycle() {
+    public void should_retainValuesAndRunLifecycle_when_credentialStatusTransactionIsUsed() {
         CredentialStatusTransaction tx = new CredentialStatusTransaction();
         tx.setTransactionLogId(1L);
         tx.setCredentialId("cred-1");
@@ -54,7 +54,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void ledger_gettersSettersAndLifecycle() {
+    public void should_retainValuesAndRunLifecycle_when_ledgerIsUsed() {
         Ledger ledger = new Ledger();
         ledger.setId(1L);
         ledger.setCredentialId("cred");
@@ -82,7 +82,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void statusListCredential_gettersSettersAndEnum() {
+    public void should_retainValuesAndEnum_when_statusListCredentialIsUsed() {
         StatusListCredential slc = new StatusListCredential();
         slc.setId("id-1");
         slc.setVcDocument("{}");
@@ -114,7 +114,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void statusListAvailableIndices_gettersSettersAndLifecycle() {
+    public void should_retainValuesAndRunLifecycle_when_statusListAvailableIndicesIsUsed() {
         StatusListAvailableIndices idx = new StatusListAvailableIndices();
         idx.setId(3L);
         idx.setStatusListCredentialId("slc");
@@ -140,7 +140,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void iarSession_gettersSettersAndLifecycle() {
+    public void should_retainValuesAndRunLifecycle_when_iarSessionIsUsed() {
         IarSession s = new IarSession();
         s.setId(1L);
         s.setAuthSession("auth");
@@ -171,7 +171,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void renderingTemplate_gettersSetters() {
+    public void should_retainValues_when_renderingTemplateIsUsed() {
         RenderingTemplate rt = new RenderingTemplate();
         rt.setId("t1");
         rt.setTemplate("<svg/>");
@@ -190,7 +190,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void credentialConfig_gettersSetters() {
+    public void should_retainValues_when_credentialConfigIsUsed() {
         CredentialConfig cc = new CredentialConfig();
         cc.setConfigId("cfg");
         cc.setStatus("active");
@@ -237,7 +237,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void attributePojos_metaDataDisplayAndNested() {
+    public void should_retainValues_when_metaDataDisplayAndNestedAreUsed() {
         MetaDataDisplay.Logo logo = new MetaDataDisplay.Logo("uri", "alt");
         MetaDataDisplay.BackgroundImage bg = new MetaDataDisplay.BackgroundImage("bgUri");
         MetaDataDisplay md = new MetaDataDisplay(logo, "Name", "en", "#000", "#fff", bg);
@@ -263,7 +263,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void attributePojos_credentialSubjectAndClaims() {
+    public void should_retainValues_when_credentialSubjectAndClaimsAreUsed() {
         CredentialSubjectParameters.Display d = new CredentialSubjectParameters.Display("Name", "en");
         CredentialSubjectParameters csp = new CredentialSubjectParameters(List.of(d));
         assertEquals("Name", csp.getDisplay().get(0).getName());
@@ -283,7 +283,7 @@ public class EntityPojoTest {
     }
 
     @Test
-    public void attributePojos_credentialStatusDetail() {
+    public void should_retainValues_when_credentialStatusDetailIsUsed() {
         io.mosip.certify.entity.attributes.CredentialStatusDetail csd =
                 new io.mosip.certify.entity.attributes.CredentialStatusDetail(
                         "revocation", Boolean.TRUE, "slc", 7L, 123L);

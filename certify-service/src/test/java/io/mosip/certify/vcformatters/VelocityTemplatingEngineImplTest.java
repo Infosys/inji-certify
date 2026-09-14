@@ -244,7 +244,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void format_basic_setsIssuer() {
+    public void should_setIssuer_when_formattingBasicTemplate() {
         mockLdp(ldpConfig("{\"issuer\":\"${_issuer}\",\"name\":\"${name}\"}"));
         Map<String, Object> params = new HashMap<>();
         params.put(Constants.TEMPLATE_NAME, ldpKey);
@@ -258,7 +258,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void format_withCredentialId_setsId() {
+    public void should_setId_when_credentialIdProvided() {
         mockLdp(ldpConfig("{\"issuer\":\"${_issuer}\"}"));
         Map<String, Object> params = new HashMap<>();
         params.put(Constants.TEMPLATE_NAME, ldpKey);
@@ -270,7 +270,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void format_withCredentialStatus_whenVcdm2Url() {
+    public void should_setCredentialStatus_when_vcdm2Url() {
         mockLdp(ldpConfig("{\"issuer\":\"${_issuer}\"}"));
         Map<String, Object> params = new HashMap<>();
         params.put(Constants.TEMPLATE_NAME, ldpKey);
@@ -283,7 +283,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void format_withVctConfirmationIssuer() {
+    public void should_setVctConfirmationAndIssuer_when_provided() {
         mockLdp(ldpConfig("{\"issuer\":\"${_issuer}\"}"));
         Map<String, Object> params = new HashMap<>();
         params.put(Constants.TEMPLATE_NAME, ldpKey);
@@ -298,7 +298,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void format_renderingTemplateMissing_handledGracefully() throws Exception {
+    public void should_handleGracefully_when_renderingTemplateMissing() throws Exception {
         mockLdp(ldpConfig("{\"issuer\":\"${_issuer}\"}"));
         when(renderingTemplateService.getTemplate("render-1"))
                 .thenThrow(new RenderingTemplateException("not-found"));
@@ -312,7 +312,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void formatQRData_nullSettings_returnsNull() {
+    public void should_returnNull_when_qrSettingsAreNull() {
         CredentialConfig cc = ldpConfig("{}");
         cc.setQrSettings(null);
         mockLdp(cc);
@@ -322,7 +322,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void formatQRData_withSettings_returnsArray() {
+    public void should_returnArray_when_qrSettingsConfigured() {
         CredentialConfig cc = ldpConfig("{}");
         cc.setQrSettings(List.of(Map.of("key", (Object) "value")));
         mockLdp(cc);
@@ -335,17 +335,17 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void getCachedCredentialConfig_nullKey_throws() {
+    public void should_throwCertifyException_when_templateKeyIsNull() {
         assertThrows(CertifyException.class, () -> formatter.getProofAlgorithm(null));
     }
 
     @Test
-    public void getCachedCredentialConfig_noDelimiter_throws() {
+    public void should_throwCertifyException_when_templateKeyHasNoDelimiter() {
         assertThrows(CertifyException.class, () -> formatter.getProofAlgorithm("nodelim"));
     }
 
     @Test
-    public void getCachedCredentialConfig_msoMdocTwoParts() {
+    public void should_lookupByDocType_when_formatIsMsoMdoc() {
         String key = VCFormats.MSO_MDOC + DELIMITER + "org.iso.mdl";
         CredentialConfig cc = new CredentialConfig();
         cc.setSignatureAlgo("ES256");
@@ -355,7 +355,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void getCachedCredentialConfig_sdJwtTwoParts() {
+    public void should_lookupBySdJwtVct_when_formatIsSdJwt() {
         String key = VCFormats.DC_SD_JWT + DELIMITER + "MyVct";
         CredentialConfig cc = new CredentialConfig();
         cc.setSignatureAlgo("EdDSA");
@@ -365,13 +365,13 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void getCachedCredentialConfig_undefinedFormatTwoParts_throws() {
+    public void should_throwCertifyException_when_twoPartFormatIsUndefined() {
         String key = "ldp_vc" + DELIMITER + "something";
         assertThrows(CertifyException.class, () -> formatter.getProofAlgorithm(key));
     }
 
     @Test
-    public void getCachedCredentialConfig_notFound_throws() {
+    public void should_throwCertifyException_when_credentialConfigNotFound() {
         String key = VCFormats.MSO_MDOC + DELIMITER + "unknown";
         when(credentialConfigRepository.findByCredentialFormatAndDocType(VCFormats.MSO_MDOC, "unknown"))
                 .thenReturn(Optional.empty());
@@ -379,7 +379,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void getSelectiveDisclosureInfo_nullSdClaim_returnsEmpty() {
+    public void should_returnEmpty_when_sdClaimIsNull() {
         CredentialConfig cc = ldpConfig("{}");
         cc.setSdClaim(null);
         mockLdp(cc);
@@ -387,7 +387,7 @@ public class VelocityTemplatingEngineImplTest {
     }
 
     @Test
-    public void remainingGetters_delegateToConfig() {
+    public void should_delegateToConfig_when_gettersInvoked() {
         CredentialConfig cc = ldpConfig("{}");
         cc.setCredentialStatusPurposes(List.of("revocation"));
         cc.setQrSettings(List.of(Map.of("a", (Object) "b")));

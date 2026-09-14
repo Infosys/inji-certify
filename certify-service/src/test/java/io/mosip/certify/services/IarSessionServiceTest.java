@@ -71,14 +71,14 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void generateAuthSession_hasPrefix() {
+    public void should_returnPrefixedSession_when_authSessionGenerated() {
         String authSession = iarSessionService.generateAuthSession();
         assertNotNull(authSession);
         assertTrue(authSession.startsWith("iar_session_"));
     }
 
     @Test
-    public void createIarSession_success() {
+    public void should_createSession_when_requestIsValid() {
         when(credentialConfigRepository.findByCredentialConfigKeyId("cred-config-1"))
                 .thenReturn(Optional.of(activeConfig("test_scope")));
 
@@ -98,7 +98,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void createIarSession_nullExpiresAt_success() {
+    public void should_createSession_when_expiresAtIsNull() {
         verifyResponse.setExpiresAt(null);
         when(credentialConfigRepository.findByCredentialConfigKeyId(anyString()))
                 .thenReturn(Optional.of(activeConfig("test_scope")));
@@ -110,28 +110,28 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void createIarSession_missingAuthorizationDetails_throws() {
+    public void should_throwException_when_authorizationDetailsMissing() {
         verifyResponse.setAuthorizationDetails(null);
         assertThrows(CertifyException.class, () ->
                 iarSessionService.createIarSession(iarRequest, verifyResponse, "auth-1", "txn-1"));
     }
 
     @Test
-    public void createIarSession_missingResponseUri_throws() {
+    public void should_throwException_when_responseUriMissing() {
         verifyResponse.getAuthorizationDetails().setResponseUri("");
         assertThrows(CertifyException.class, () ->
                 iarSessionService.createIarSession(iarRequest, verifyResponse, "auth-1", "txn-1"));
     }
 
     @Test
-    public void createIarSession_missingAuthDetailsInRequest_throws() {
+    public void should_throwException_when_authDetailsMissingInRequest() {
         iarRequest.setAuthorizationDetails(List.of());
         assertThrows(CertifyException.class, () ->
                 iarSessionService.createIarSession(iarRequest, verifyResponse, "auth-1", "txn-1"));
     }
 
     @Test
-    public void createIarSession_missingCredentialConfigId_throws() {
+    public void should_throwException_when_credentialConfigIdMissing() {
         AuthorizationDetail detail = new AuthorizationDetail();
         detail.setCredentialConfigurationId("");
         iarRequest.setAuthorizationDetails(List.of(detail));
@@ -140,7 +140,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void createIarSession_configNotFound_throws() {
+    public void should_throwException_when_configNotFound() {
         when(credentialConfigRepository.findByCredentialConfigKeyId("cred-config-1"))
                 .thenReturn(Optional.empty());
         assertThrows(CertifyException.class, () ->
@@ -148,7 +148,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void createIarSession_inactiveConfig_throws() {
+    public void should_throwException_when_configInactive() {
         CredentialConfig config = activeConfig("test_scope");
         config.setStatus("inactive");
         when(credentialConfigRepository.findByCredentialConfigKeyId("cred-config-1"))
@@ -158,7 +158,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void createIarSession_missingScope_throws() {
+    public void should_throwException_when_scopeMissing() {
         when(credentialConfigRepository.findByCredentialConfigKeyId("cred-config-1"))
                 .thenReturn(Optional.of(activeConfig(null)));
         assertThrows(CertifyException.class, () ->
@@ -166,7 +166,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void isValidAuthSession_variants() {
+    public void should_validateAuthSession_when_variousInputsProvided() {
         when(iarSessionRepository.findByAuthSession("present")).thenReturn(Optional.of(new IarSession()));
         when(iarSessionRepository.findByAuthSession("absent")).thenReturn(Optional.empty());
         assertTrue(iarSessionService.isValidAuthSession("present"));
@@ -174,7 +174,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void getSessionByAuthSession_found() {
+    public void should_returnSession_when_authSessionFound() {
         IarSession existing = new IarSession();
         existing.setAuthSession("present");
         when(iarSessionRepository.findByAuthSession("present")).thenReturn(Optional.of(existing));
@@ -182,7 +182,7 @@ public class IarSessionServiceTest {
     }
 
     @Test
-    public void getSessionByAuthSession_notFound_throws() {
+    public void should_throwException_when_authSessionNotFound() {
         when(iarSessionRepository.findByAuthSession("absent")).thenReturn(Optional.empty());
         assertThrows(CertifyException.class, () -> iarSessionService.getSessionByAuthSession("absent"));
     }

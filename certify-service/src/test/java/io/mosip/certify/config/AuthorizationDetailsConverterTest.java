@@ -12,17 +12,17 @@ public class AuthorizationDetailsConverterTest {
     private final AuthorizationDetailsConverter converter = new AuthorizationDetailsConverter();
 
     @Test
-    public void convert_null_returnsNull() {
+    public void should_returnNull_when_inputIsNull() {
         assertNull(converter.convert(null));
     }
 
     @Test
-    public void convert_empty_returnsNull() {
+    public void should_returnNull_when_inputIsEmpty() {
         assertNull(converter.convert("   "));
     }
 
     @Test
-    public void convert_validJson_returnsList() {
+    public void should_returnList_when_jsonIsValid() {
         String json = "[{\"type\":\"openid_credential\",\"credential_configuration_id\":\"MockVC\"}]";
         List<AuthorizationDetail> result = converter.convert(json);
         assertNotNull(result);
@@ -31,14 +31,14 @@ public class AuthorizationDetailsConverterTest {
     }
 
     @Test
-    public void convert_emptyArray_returnsEmptyList() {
+    public void should_returnEmptyList_when_jsonIsEmptyArray() {
         List<AuthorizationDetail> result = converter.convert("[]");
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
-    public void convert_invalidJson_throwsIllegalArgument() {
+    public void should_throwIllegalArgument_when_jsonIsInvalid() {
         assertThrows(IllegalArgumentException.class, () -> converter.convert("not-json"));
     }
 }

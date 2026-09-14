@@ -26,13 +26,13 @@ public class CredentialStatusControllerTest {
     private CredentialStatusController controller;
 
     @Test
-    public void getStatusListById_returnsDocument() {
+    public void should_returnDocument_when_statusListExists() {
         when(statusListCredentialService.getStatusListCredential("id-1")).thenReturn("{\"vc\":true}");
         assertEquals("{\"vc\":true}", controller.getStatusListById("id-1"));
     }
 
     @Test
-    public void updateCredential_withResult_returnsOk() {
+    public void should_returnOk_when_updateProducesResult() {
         UpdateCredentialStatusRequest request = new UpdateCredentialStatusRequest();
         CredentialStatusResponse response = new CredentialStatusResponse();
         when(credentialStatusService.updateCredentialStatus(request)).thenReturn(response);
@@ -43,7 +43,7 @@ public class CredentialStatusControllerTest {
     }
 
     @Test
-    public void updateCredential_nullResult_returnsNoContent() {
+    public void should_returnNoContent_when_updateProducesNull() {
         UpdateCredentialStatusRequest request = new UpdateCredentialStatusRequest();
         when(credentialStatusService.updateCredentialStatus(request)).thenReturn(null);
 

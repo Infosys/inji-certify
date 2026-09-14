@@ -28,7 +28,7 @@ public class PreAuthIssuanceServiceImplTest {
     private PreAuthIssuanceServiceImpl service;
 
     @Test
-    public void fetchData_returnsClaimsFromCache() throws Exception {
+    public void should_returnClaims_when_cachedTransactionExists() throws Exception {
         when(parsedAccessToken.getAccessTokenHash()).thenReturn("hash-1");
         PreAuthTransaction tx = new PreAuthTransaction();
         tx.setClaims(Map.of("name", "Alice", "age", 30));
@@ -40,26 +40,26 @@ public class PreAuthIssuanceServiceImplTest {
     }
 
     @Test
-    public void fetchData_nullTokenHash_throws() {
+    public void should_throwException_when_tokenHashIsNull() {
         when(parsedAccessToken.getAccessTokenHash()).thenReturn(null);
         assertThrows(DataProviderExchangeException.class, () -> service.fetchData(Map.of()));
     }
 
     @Test
-    public void fetchData_emptyTokenHash_throws() {
+    public void should_throwException_when_tokenHashIsEmpty() {
         when(parsedAccessToken.getAccessTokenHash()).thenReturn("");
         assertThrows(DataProviderExchangeException.class, () -> service.fetchData(Map.of()));
     }
 
     @Test
-    public void fetchData_missingCachedTransaction_throws() {
+    public void should_throwException_when_cachedTransactionMissing() {
         when(parsedAccessToken.getAccessTokenHash()).thenReturn("hash-1");
         when(vciCacheService.getPreAuthTransaction("hash-1")).thenReturn(null);
         assertThrows(DataProviderExchangeException.class, () -> service.fetchData(Map.of()));
     }
 
     @Test
-    public void fetchData_nullClaims_throws() {
+    public void should_throwException_when_claimsAreNull() {
         when(parsedAccessToken.getAccessTokenHash()).thenReturn("hash-1");
         PreAuthTransaction tx = new PreAuthTransaction();
         tx.setClaims(null);
@@ -68,7 +68,7 @@ public class PreAuthIssuanceServiceImplTest {
     }
 
     @Test
-    public void fetchData_emptyClaims_throws() {
+    public void should_throwException_when_claimsAreEmpty() {
         when(parsedAccessToken.getAccessTokenHash()).thenReturn("hash-1");
         PreAuthTransaction tx = new PreAuthTransaction();
         tx.setClaims(Map.of());

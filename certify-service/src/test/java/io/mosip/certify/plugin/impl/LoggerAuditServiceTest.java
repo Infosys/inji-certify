@@ -21,37 +21,37 @@ public class LoggerAuditServiceTest {
     }
 
     @Test
-    public void logAudit_success_noUser_clearsMdc() {
+    public void should_clearMdc_when_auditLoggedWithoutUser() {
         service.logAudit(Action.VC_ISSUANCE, ActionStatus.SUCCESS, auditDTO(), null);
         assertNull(MDC.get("transactionId"));
     }
 
     @Test
-    public void logAudit_success_withUser_clearsMdc() {
+    public void should_clearMdc_when_auditLoggedWithUser() {
         service.logAudit("user-1", Action.PROOF_VALIDATION, ActionStatus.SUCCESS, auditDTO(), null);
         assertNull(MDC.get("transactionId"));
     }
 
     @Test
-    public void logAudit_errorStatus_logsError() {
+    public void should_logError_when_auditStatusIsError() {
         service.logAudit("user-1", Action.NONCE_VALIDATION, ActionStatus.ERROR, auditDTO(), null);
         assertNull(MDC.get("transactionId"));
     }
 
     @Test
-    public void logAudit_withThrowable_logsErrorAndReturns() {
+    public void should_logErrorAndReturn_when_throwableProvided() {
         service.logAudit(Action.VC_ISSUANCE, ActionStatus.SUCCESS, auditDTO(), new RuntimeException("boom"));
         assertNull(MDC.get("transactionId"));
     }
 
     @Test
-    public void audit_nullAuditDto_doesNotThrow() {
+    public void should_notThrow_when_auditDtoIsNull() {
         service.audit("user-1", Action.VC_ISSUANCE, ActionStatus.SUCCESS, null, null);
         assertNull(MDC.get("transactionId"));
     }
 
     @Test
-    public void audit_nullUserSuccess_logsActionOnly() {
+    public void should_logActionOnly_when_userIsNull() {
         service.audit(null, Action.VC_ISSUANCE, ActionStatus.SUCCESS, auditDTO(), null);
         assertNull(MDC.get("transactionId"));
     }

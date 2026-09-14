@@ -174,7 +174,7 @@ public class ExceptionHandlerAdviceTest {
     // ---- folded from ExceptionHandlerAdviceExtraTest ----
 
     @Test
-    public void handleExceptions_routesToOAuth() {
+    public void should_routeToOAuthHandler_when_pathIsOAuth() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new IllegalArgumentException("bad"), webRequest("/v1/certify/oauth/token"));
         assertTrue(response.getBody() instanceof OAuthTokenError);
@@ -182,21 +182,21 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void handleExceptions_routesToVCI() {
+    public void should_routeToVciHandler_when_pathIsIssuance() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new CertifyException("some_error", "msg"), webRequest("/v1/certify/issuance/credential"));
         assertTrue(response.getBody() instanceof VCError);
     }
 
     @Test
-    public void handleExceptions_routesToInternal() {
+    public void should_routeToInternalHandler_when_pathIsOther() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new RuntimeException("boom"), webRequest("/v1/certify/something-else"));
         assertTrue(response.getBody() instanceof ResponseWrapper);
     }
 
     @Test
-    public void internal_certifyException() {
+    public void should_returnErrorWrapper_when_internalCertifyException() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new CertifyException("code1", "message1"), webRequest("/other"));
         ResponseWrapper wrapper = (ResponseWrapper) response.getBody();
@@ -205,63 +205,63 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void internal_renderingTemplateException_notFound() {
+    public void should_returnNotFound_when_internalRenderingTemplateException() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new RenderingTemplateException("no_template"), webRequest("/other"));
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void internal_credentialConfigException_notFound() {
+    public void should_returnNotFound_when_internalCredentialConfigException() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new CredentialConfigException("bad_config"), webRequest("/other"));
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void internal_authenticationCredentialsNotFound_unauthorized() {
+    public void should_returnUnauthorized_when_internalAuthenticationCredentialsNotFound() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new AuthenticationCredentialsNotFoundException("nope"), webRequest("/other"));
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     @Test
-    public void internal_accessDenied_forbidden() {
+    public void should_returnForbidden_when_internalAccessDenied() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new AccessDeniedException("denied"), webRequest("/other"));
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
-    public void internal_missingParam() {
+    public void should_returnErrorWrapper_when_internalMissingParam() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new MissingServletRequestParameterException("p", "String"), webRequest("/other"));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void internal_mediaTypeNotAcceptable() {
+    public void should_returnErrorWrapper_when_internalMediaTypeNotAcceptable() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new HttpMediaTypeNotAcceptableException("no"), webRequest("/other"));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void internal_constraintViolation() {
+    public void should_returnErrorWrapper_when_internalConstraintViolation() {
         ConstraintViolationException ex = new ConstraintViolationException("invalid", Collections.emptySet());
         ResponseEntity<?> response = advice.handleExceptions(ex, webRequest("/other"));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void internal_unknownError() {
+    public void should_returnErrorWrapper_when_internalUnknownError() {
         ResponseEntity<?> response = advice.handleExceptions(
                 new RuntimeException("unexpected"), webRequest("/other"));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void vci_invalidRequestException() {
+    public void should_returnBadRequest_when_vciInvalidRequestException() {
         ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
                 new InvalidRequestException("invalid_request"), Mockito.mock(HttpServletRequest.class));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -269,7 +269,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void vci_certifyException() {
+    public void should_returnBadRequest_when_vciCertifyException() {
         ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
                 new CertifyException("vc_error", "vc failed"), Mockito.mock(HttpServletRequest.class));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -277,7 +277,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void vci_constraintViolation() {
+    public void should_returnBadRequest_when_vciConstraintViolation() {
         ConstraintViolationException ex = new ConstraintViolationException("bad", Collections.emptySet());
         ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
                 ex, Mockito.mock(HttpServletRequest.class));
@@ -285,14 +285,14 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void vci_unknownError_internalServerError() {
+    public void should_returnInternalServerError_when_vciUnknownError() {
         ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
                 new RuntimeException("boom"), Mockito.mock(HttpServletRequest.class));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test
-    public void vci_notAuthenticated_bearerChallenge() {
+    public void should_returnUnauthorizedWithChallenge_when_vciNotAuthenticated() {
         HttpServletRequest req = Mockito.mock(HttpServletRequest.class);
         when(req.getAttribute(Constants.AUTH_ERROR_ATTRIBUTE)).thenReturn(null);
         when(req.getAttribute(Constants.AUTH_ERROR_CODE_ATTRIBUTE)).thenReturn(null);
@@ -304,7 +304,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_illegalArgument() {
+    public void should_returnInvalidRequest_when_oauthIllegalArgument() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new IllegalArgumentException("bad param"));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -312,28 +312,28 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_constraintViolation() {
+    public void should_returnBadRequest_when_oauthConstraintViolation() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new ConstraintViolationException("bad", Collections.emptySet()));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    public void oauth_missingParam() {
+    public void should_returnBadRequest_when_oauthMissingParam() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new MissingServletRequestParameterException("grant_type", "String"));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    public void oauth_mediaTypeNotAcceptable() {
+    public void should_returnBadRequest_when_oauthMediaTypeNotAcceptable() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new HttpMediaTypeNotAcceptableException("no"));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    public void oauth_notAuthenticated_unauthorized() {
+    public void should_returnUnauthorized_when_oauthNotAuthenticated() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new NotAuthenticatedException("invalid_client"));
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -341,7 +341,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_accessDenied_forbidden() {
+    public void should_returnForbidden_when_oauthAccessDenied() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new AccessDeniedException("denied"));
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -349,7 +349,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_unknown_serverError() {
+    public void should_returnServerError_when_oauthUnknownError() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new RuntimeException("weird"));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -357,7 +357,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_certifyException_mapsInvalidGrant() {
+    public void should_mapInvalidGrant_when_oauthCertifyExceptionIsCodeExpired() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new CertifyException("authorization_code_expired", "expired"));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -365,7 +365,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_certifyException_mapsInvalidClient_unauthorized() {
+    public void should_mapInvalidClient_when_oauthCertifyExceptionIsClientMismatch() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new CertifyException("client_id_mismatch", "mismatch"));
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -373,7 +373,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_certifyException_mapsUnauthorizedClient_forbidden() {
+    public void should_mapUnauthorizedClient_when_oauthCertifyExceptionIsUnauthorizedClient() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new CertifyException("unauthorized_client", "nope"));
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -381,7 +381,7 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
-    public void oauth_certifyException_defaultInvalidRequest() {
+    public void should_mapInvalidRequest_when_oauthCertifyExceptionIsOther() {
         ResponseEntity<Object> response = advice.handleOAuthControllerExceptions(
                 new CertifyException("pkce_validation_failed", "pkce"));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());

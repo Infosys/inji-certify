@@ -31,47 +31,47 @@ public class LedgerUtilsTest {
     private LedgerUtils ledgerUtils;
 
     @Test
-    public void extractCredentialType_arrayIsSortedAndJoined() {
+    public void should_sortAndJoinTypes_when_credentialTypeIsArray() {
         JSONObject json = new JSONObject().put("type", new JSONArray().put("VerifiableCredential").put("AbcCredential"));
         assertEquals("AbcCredential,VerifiableCredential", LedgerUtils.extractCredentialType(json));
     }
 
     @Test
-    public void extractCredentialType_singleString() {
+    public void should_returnType_when_credentialTypeIsSingleString() {
         JSONObject json = new JSONObject().put("type", "MyCredential");
         assertEquals("MyCredential", LedgerUtils.extractCredentialType(json));
     }
 
     @Test
-    public void extractCredentialType_emptyArray_returnsDefault() {
+    public void should_returnDefault_when_credentialTypeArrayIsEmpty() {
         JSONObject json = new JSONObject().put("type", new JSONArray());
         assertEquals("VerifiableCredential", LedgerUtils.extractCredentialType(json));
     }
 
     @Test
-    public void extractCredentialType_missingType_returnsDefault() {
+    public void should_returnDefault_when_credentialTypeIsMissing() {
         assertEquals("VerifiableCredential", LedgerUtils.extractCredentialType(new JSONObject()));
     }
 
     @Test
-    public void extractCredentialType_blankString_returnsDefault() {
+    public void should_returnDefault_when_credentialTypeIsBlank() {
         JSONObject json = new JSONObject().put("type", "   ");
         assertEquals("VerifiableCredential", LedgerUtils.extractCredentialType(json));
     }
 
     @Test
-    public void extractIndexedAttributes_nullJson_returnsEmpty() {
+    public void should_returnEmpty_when_indexedAttributesJsonIsNull() {
         assertTrue(ledgerUtils.extractIndexedAttributes(null).isEmpty());
     }
 
     @Test
-    public void extractIndexedAttributes_noMappings_returnsEmpty() {
+    public void should_returnEmpty_when_noMappingsConfigured() {
         when(indexedAttributesConfig.getIndexedMappings()).thenReturn(new LinkedHashMap<>());
         assertTrue(ledgerUtils.extractIndexedAttributes(new JSONObject().put("a", "b")).isEmpty());
     }
 
     @Test
-    public void extractIndexedAttributes_extractsScalar() {
+    public void should_extractScalar_when_mappingMatches() {
         Map<String, String> mappings = new LinkedHashMap<>();
         mappings.put("name", "$.credentialSubject.name");
         when(indexedAttributesConfig.getIndexedMappings()).thenReturn(mappings);
@@ -82,7 +82,7 @@ public class LedgerUtilsTest {
     }
 
     @Test
-    public void extractIndexedAttributes_fallbackPathUsed() {
+    public void should_useFallbackPath_when_primaryPathMissing() {
         Map<String, String> mappings = new LinkedHashMap<>();
         mappings.put("id", "$.missing.field|$.credentialSubject.id");
         when(indexedAttributesConfig.getIndexedMappings()).thenReturn(mappings);
@@ -93,7 +93,7 @@ public class LedgerUtilsTest {
     }
 
     @Test
-    public void extractIndexedAttributes_missingValue_skipped() {
+    public void should_skipAttribute_when_valueMissing() {
         Map<String, String> mappings = new LinkedHashMap<>();
         mappings.put("missing", "$.credentialSubject.absent");
         when(indexedAttributesConfig.getIndexedMappings()).thenReturn(mappings);
@@ -103,7 +103,7 @@ public class LedgerUtilsTest {
     }
 
     @Test
-    public void extractCredentialStatusDetails_present() {
+    public void should_returnStatusDetails_when_credentialStatusPresent() {
         JSONObject status = new JSONObject()
                 .put("statusPurpose", "revocation")
                 .put("statusListIndex", "42")
@@ -120,7 +120,7 @@ public class LedgerUtilsTest {
     }
 
     @Test
-    public void extractCredentialStatusDetails_noSlashInUrl_usesFullUrl() {
+    public void should_useFullUrl_when_statusListUrlHasNoSlash() {
         JSONObject status = new JSONObject()
                 .put("statusPurpose", "revocation")
                 .put("statusListIndex", "1")
@@ -132,7 +132,7 @@ public class LedgerUtilsTest {
     }
 
     @Test
-    public void extractCredentialStatusDetails_absent_returnsNull() {
+    public void should_returnNull_when_credentialStatusAbsent() {
         assertNull(ledgerUtils.extractCredentialStatusDetails(new JSONObject()));
     }
 }

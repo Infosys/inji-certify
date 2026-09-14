@@ -50,7 +50,7 @@ public class LedgerIssuanceTableCustomRepositoryImplTest {
     }
 
     @Test
-    public void findBySearchRequest_baseQuery() {
+    public void should_buildBaseQuery_when_optionalFiltersAreAbsent() {
         when(entityManager.createNativeQuery(anyString(), eq(Ledger.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(List.of(new Ledger()));
 
@@ -68,7 +68,7 @@ public class LedgerIssuanceTableCustomRepositoryImplTest {
     }
 
     @Test
-    public void findBySearchRequest_withCredentialId() {
+    public void should_addCredentialIdFilter_when_credentialIdIsPresent() {
         CredentialLedgerSearchRequest req = baseRequest();
         req.setCredentialId("cred-123");
         when(entityManager.createNativeQuery(anyString(), eq(Ledger.class))).thenReturn(query);
@@ -83,7 +83,7 @@ public class LedgerIssuanceTableCustomRepositoryImplTest {
     }
 
     @Test
-    public void findBySearchRequest_withIndexedAttributes_skipsBlankEntries() {
+    public void should_skipBlankEntries_when_indexedAttributesContainBlanks() {
         CredentialLedgerSearchRequest req = baseRequest();
         Map<String, String> attrs = new LinkedHashMap<>();
         attrs.put("policyNumber", "12345");
@@ -106,7 +106,7 @@ public class LedgerIssuanceTableCustomRepositoryImplTest {
     }
 
     @Test
-    public void findBySearchRequest_wrapsExceptions() {
+    public void should_wrapException_when_queryCreationFails() {
         when(entityManager.createNativeQuery(anyString(), eq(Ledger.class)))
                 .thenThrow(new IllegalStateException("db down"));
 

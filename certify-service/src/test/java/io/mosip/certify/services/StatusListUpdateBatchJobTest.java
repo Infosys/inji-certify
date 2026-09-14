@@ -73,14 +73,14 @@ public class StatusListUpdateBatchJobTest {
     }
 
     @Test
-    public void updateStatusLists_disabled_returnsEarly() {
+    public void should_returnEarly_when_batchJobIsDisabled() {
         ReflectionTestUtils.setField(batchJob, "batchJobEnabled", false);
         batchJob.updateStatusLists();
         verify(transactionRepository, never()).findByIsProcessedFalseOrderByCreatedDtimesAsc(any());
     }
 
     @Test
-    public void updateStatusLists_noTransactions_returns() {
+    public void should_returnEarly_when_noTransactionsExist() {
         when(transactionRepository.findByIsProcessedFalseOrderByCreatedDtimesAsc(any(Pageable.class)))
                 .thenReturn(Collections.emptyList());
         batchJob.updateStatusLists();
@@ -88,7 +88,7 @@ public class StatusListUpdateBatchJobTest {
     }
 
     @Test
-    public void updateStatusLists_processesGroups() {
+    public void should_processGroups_when_transactionsExist() {
         List<CredentialStatusTransaction> txns = List.of(
                 txn("list-a", 1L, true), txn("list-a", 2L, true), txn("list-b", 1L, true));
         when(transactionRepository.findByIsProcessedFalseOrderByCreatedDtimesAsc(any(Pageable.class)))
@@ -102,7 +102,7 @@ public class StatusListUpdateBatchJobTest {
     }
 
     @Test
-    public void updateStatusLists_oneGroupFails_continues() {
+    public void should_continueProcessing_when_oneGroupFails() {
         List<CredentialStatusTransaction> txns = List.of(txn("list-a", 1L, true), txn("list-b", 1L, true));
         when(transactionRepository.findByIsProcessedFalseOrderByCreatedDtimesAsc(any(Pageable.class)))
                 .thenReturn(txns);
@@ -115,21 +115,21 @@ public class StatusListUpdateBatchJobTest {
     }
 
     @Test
-    public void updateStatusLists_fetchThrows_wrapsInCertifyException() {
+    public void should_wrapInCertifyException_when_fetchThrows() {
         when(transactionRepository.findByIsProcessedFalseOrderByCreatedDtimesAsc(any(Pageable.class)))
                 .thenThrow(new RuntimeException("db error"));
         assertThrows(CertifyException.class, () -> batchJob.updateStatusLists());
     }
 
     @Test
-    public void updateStatusList_notFound_throws() {
+    public void should_throwCertifyException_when_statusListNotFound() {
         when(statusListRepository.findById("list-a")).thenReturn(Optional.empty());
         assertThrows(CertifyException.class, () ->
                 batchJob.updateStatusList("list-a", List.of(txn("list-a", 1L, true))));
     }
 
     @Test
-    public void updateStatusList_success_marksProcessedAndSaves() {
+    public void should_markProcessedAndSave_when_updateSucceeds() {
         long capacityKb = 1L;
         String encoded = BitStringStatusListUtils.createEmptyEncodedList(capacityKb);
         JSONObject credentialSubject = new JSONObject().put("encodedList", encoded);
@@ -150,7 +150,7 @@ public class StatusListUpdateBatchJobTest {
     }
 
     @Test
-    public void updateStatusListCredential_success() {
+    public void should_returnUpdatedCredential_when_updateSucceeds() {
         JSONObject credentialSubject = new JSONObject().put("encodedList", "abc");
         JSONObject vc = new JSONObject().put("credentialSubject", credentialSubject);
 
@@ -166,7 +166,7 @@ public class StatusListUpdateBatchJobTest {
     }
 
     @Test
-    public void updateStatusListCredential_invalidJson_throws() {
+    public void should_throwCertifyException_when_vcDocumentIsInvalidJson() {
         StatusListCredential list = new StatusListCredential();
         list.setId("list-a");
         list.setVcDocument("{invalid json");

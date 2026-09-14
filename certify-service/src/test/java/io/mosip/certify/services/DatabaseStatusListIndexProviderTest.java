@@ -60,18 +60,18 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void getProviderName() {
+    public void should_returnDatabaseProviderName_when_requested() {
         assertEquals("DatabaseRandomAvailableIndexProvider", provider.getProviderName());
     }
 
     @Test
-    public void acquireIndex_listNotFound_returnsEmpty() {
+    public void should_returnEmpty_when_listNotFound() {
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.empty());
         assertTrue(provider.acquireIndex("list-1", Collections.emptyMap()).isEmpty());
     }
 
     @Test
-    public void acquireIndex_success_bigIntegerResult() {
+    public void should_returnIndex_when_queryReturnsBigInteger() {
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.of(statusList(1L)));
         when(statusListAvailableIndicesRepository.countByStatusListCredentialIdAndIsAssignedTrue("list-1"))
                 .thenReturn(0L);
@@ -83,7 +83,7 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void acquireIndex_success_longResult() {
+    public void should_returnIndex_when_queryReturnsLong() {
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.of(statusList(1L)));
         when(statusListAvailableIndicesRepository.countByStatusListCredentialIdAndIsAssignedTrue("list-1"))
                 .thenReturn(0L);
@@ -93,7 +93,7 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void acquireIndex_success_integerResult() {
+    public void should_returnIndex_when_queryReturnsInteger() {
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.of(statusList(1L)));
         when(statusListAvailableIndicesRepository.countByStatusListCredentialIdAndIsAssignedTrue("list-1"))
                 .thenReturn(0L);
@@ -103,7 +103,7 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void acquireIndex_capacityReached_marksFullAndReturnsEmpty() {
+    public void should_markListFullAndReturnEmpty_when_capacityIsReached() {
         StatusListCredential list = statusList(1L);
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.of(list));
         // physical capacity = 1*1024*8 = 8192; threshold 50% = 4096
@@ -119,7 +119,7 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void acquireIndex_nullClaimResult_returnsEmpty() {
+    public void should_returnEmpty_when_claimResultIsNull() {
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.of(statusList(1L)));
         when(statusListAvailableIndicesRepository.countByStatusListCredentialIdAndIsAssignedTrue("list-1"))
                 .thenReturn(0L);
@@ -129,7 +129,7 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void acquireIndex_claimThrows_returnsEmpty() {
+    public void should_returnEmpty_when_claimThrows() {
         when(statusListCredentialRepository.findById("list-1")).thenReturn(Optional.of(statusList(1L)));
         when(statusListAvailableIndicesRepository.countByStatusListCredentialIdAndIsAssignedTrue("list-1"))
                 .thenReturn(0L);
@@ -139,7 +139,7 @@ public class DatabaseStatusListIndexProviderTest {
     }
 
     @Test
-    public void acquireIndex_repositoryThrows_returnsEmpty() {
+    public void should_returnEmpty_when_repositoryThrows() {
         when(statusListCredentialRepository.findById("list-1")).thenThrow(new RuntimeException("db down"));
         assertTrue(provider.acquireIndex("list-1", Collections.emptyMap()).isEmpty());
     }

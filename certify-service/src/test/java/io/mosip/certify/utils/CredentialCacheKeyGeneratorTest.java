@@ -28,19 +28,19 @@ public class CredentialCacheKeyGeneratorTest {
     private CredentialCacheKeyGenerator generator;
 
     @Test
-    public void nullConfigId_returnsNull() {
+    public void should_returnNull_when_credentialConfigKeyIdIsNull() {
         assertNull(generator.generateKeyFromCredentialConfigKeyId(null));
     }
 
     @Test
-    public void configNotFound_returnsDefaultKey() {
+    public void should_returnDefaultKey_when_configNotFound() {
         when(credentialConfigRepository.findByCredentialConfigKeyId("missing"))
                 .thenReturn(Optional.empty());
         assertEquals("default-key", generator.generateKeyFromCredentialConfigKeyId("missing"));
     }
 
     @Test
-    public void sdJwtFormat_usesFormatAndVct() {
+    public void should_useFormatAndVct_when_formatIsSdJwt() {
         CredentialConfig config = new CredentialConfig();
         config.setCredentialFormat(VCFormats.DC_SD_JWT);
         config.setSdJwtVct("MyVct");
@@ -52,7 +52,7 @@ public class CredentialCacheKeyGeneratorTest {
     }
 
     @Test
-    public void ldpFormat_usesTypeContextFormat() {
+    public void should_useTypeContextFormat_when_formatIsLdp() {
         CredentialConfig config = new CredentialConfig();
         config.setCredentialFormat(VCFormats.LDP_VC);
         config.setCredentialType("MockType");

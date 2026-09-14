@@ -48,7 +48,7 @@ public class SystemInfoControllerTest {
     private SystemInfoController systemInfoController;
 
     @Test
-    public void getCertificate_success() {
+    public void should_returnCertificate_when_requestIsValid() {
         KeyPairGenerateResponseDto dto = new KeyPairGenerateResponseDto();
         when(keymanagerService.getCertificate(eq("APP_ID"), any())).thenReturn(dto);
 
@@ -60,14 +60,14 @@ public class SystemInfoControllerTest {
     }
 
     @Test
-    public void getCertificate_propagatesCertifyException() {
+    public void should_propagateCertifyException_when_certificateRetrievalFails() {
         when(keymanagerService.getCertificate(any(), any())).thenThrow(new CertifyException("err"));
         assertThrows(CertifyException.class, () ->
                 systemInfoController.getCertificate("APP_ID", Optional.empty()));
     }
 
     @Test
-    public void uploadSignedCertificate_success() {
+    public void should_uploadCertificate_when_requestIsValid() {
         UploadCertificateResponseDto dto = new UploadCertificateResponseDto();
         when(keymanagerService.uploadCertificate(any())).thenReturn(dto);
         RequestWrapper<UploadCertificateRequestDto> request = new RequestWrapper<>();
@@ -81,7 +81,7 @@ public class SystemInfoControllerTest {
     }
 
     @Test
-    public void uploadSignedCertificate_propagatesCertifyException() {
+    public void should_propagateCertifyException_when_uploadFails() {
         when(keymanagerService.uploadCertificate(any())).thenThrow(new CertifyException("err"));
         RequestWrapper<UploadCertificateRequestDto> request = new RequestWrapper<>();
         request.setRequest(new UploadCertificateRequestDto());
@@ -89,7 +89,7 @@ public class SystemInfoControllerTest {
     }
 
     @Test
-    public void generateCSR_success() {
+    public void should_returnGeneratedCsr_when_requestIsValid() {
         KeyPairGenerateResponseDto dto = new KeyPairGenerateResponseDto();
         when(keymanagerService.generateCSR(any())).thenReturn(dto);
         RequestWrapper<CSRGenerateRequestDto> request = new RequestWrapper<>();
@@ -105,7 +105,7 @@ public class SystemInfoControllerTest {
     }
 
     @Test
-    public void generateCSR_propagatesCertifyException() {
+    public void should_propagateCertifyException_when_csrGenerationFails() {
         when(keymanagerService.generateCSR(any())).thenThrow(new CertifyException("err"));
         RequestWrapper<CSRGenerateRequestDto> request = new RequestWrapper<>();
         CSRGenerateRequestDto csr = new CSRGenerateRequestDto();
@@ -116,7 +116,7 @@ public class SystemInfoControllerTest {
     }
 
     @Test
-    public void uploadCACertificate_success() {
+    public void should_uploadCaCertificate_when_requestIsValid() {
         CACertificateResponseDto dto = new CACertificateResponseDto();
         when(partnerCertificateManagerService.uploadCACertificate(any())).thenReturn(dto);
         RequestWrapper<CACertificateRequestDto> request = new RequestWrapper<>();
@@ -131,7 +131,7 @@ public class SystemInfoControllerTest {
     }
 
     @Test
-    public void uploadCACertificate_propagatesCertifyException() {
+    public void should_propagateCertifyException_when_caUploadFails() {
         when(partnerCertificateManagerService.uploadCACertificate(any())).thenThrow(new CertifyException("err"));
         RequestWrapper<CACertificateRequestDto> request = new RequestWrapper<>();
         CACertificateRequestDto ca = new CACertificateRequestDto();

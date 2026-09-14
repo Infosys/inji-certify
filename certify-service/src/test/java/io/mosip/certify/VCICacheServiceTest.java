@@ -262,63 +262,63 @@ public class VCICacheServiceTest {
     }
 
     @Test
-    public void getPreAuthTransaction_found() {
+    public void should_returnTransaction_when_preAuthTransactionExists() {
         PreAuthTransaction tx = new PreAuthTransaction();
         when(cache.get("h", PreAuthTransaction.class)).thenReturn(tx);
         assertEquals(tx, vciCacheService.getPreAuthTransaction("h"));
     }
 
     @Test
-    public void getPreAuthTransaction_nullCache_returnsNull() {
+    public void should_returnNull_when_preAuthCacheIsNull() {
         when(cacheManager.getCache("preAuthCacheTxn")).thenReturn(null);
         assertNull(vciCacheService.getPreAuthTransaction("h"));
     }
 
     @Test
-    public void setPreAuthTransaction_returnsSame() {
+    public void should_returnSameTransaction_when_preAuthTransactionSet() {
         PreAuthTransaction tx = new PreAuthTransaction();
         assertEquals(tx, vciCacheService.setPreAuthTransaction("h", tx));
     }
 
     @Test
-    public void setNonceTransaction_returnsSame() {
+    public void should_returnSameTransaction_when_nonceTransactionSet() {
         VCIssuanceTransaction tx = new VCIssuanceTransaction();
         assertEquals(tx, vciCacheService.setNonceTransaction("nonce", tx));
     }
 
     @Test
-    public void getNonceTransaction_found() {
+    public void should_returnTransaction_when_nonceTransactionExists() {
         VCIssuanceTransaction tx = new VCIssuanceTransaction();
         when(cache.get("txn:nonce", VCIssuanceTransaction.class)).thenReturn(tx);
         assertEquals(tx, vciCacheService.getNonceTransaction("nonce"));
     }
 
     @Test
-    public void getNonceTransaction_nullCache_throws() {
+    public void should_throwCertifyException_when_nonceCacheIsNull() {
         when(cacheManager.getCache("nonce")).thenReturn(null);
         assertThrows(CertifyException.class, () -> vciCacheService.getNonceTransaction("nonce"));
     }
 
     @Test
-    public void markPreAuthCodeAsUsed_nullCache_noOp() {
+    public void should_doNothing_when_preAuthCodeCacheIsNullOnMark() {
         when(cacheManager.getCache("preAuthCodeCache")).thenReturn(null);
         vciCacheService.markPreAuthCodeAsUsed("code");
     }
 
     @Test
-    public void isPreAuthCodeUsed_nullCache_returnsFalse() {
+    public void should_returnFalse_when_preAuthCodeCacheIsNull() {
         when(cacheManager.getCache("preAuthCodeCache")).thenReturn(null);
         assertFalse(vciCacheService.isPreAuthCodeUsed("code"));
     }
 
     @Test
-    public void claimPreAuthCode_noData_returnsFalse() {
+    public void should_returnFalse_when_preAuthCodeDataMissing() {
         when(cache.get("pre_auth_code:code")).thenReturn(null);
         assertFalse(vciCacheService.claimPreAuthCode("code"));
     }
 
     @Test
-    public void claimPreAuthCode_validUnused_marksAndReturnsTrue() {
+    public void should_markAndReturnTrue_when_preAuthCodeIsValidAndUnused() {
         PreAuthCodeData data = new PreAuthCodeData();
         Cache.ValueWrapper dataWrapper = mock(Cache.ValueWrapper.class);
         when(dataWrapper.get()).thenReturn(data);
@@ -330,7 +330,7 @@ public class VCICacheServiceTest {
     }
 
     @Test
-    public void claimPreAuthCode_alreadyUsed_returnsFalse() {
+    public void should_returnFalse_when_preAuthCodeAlreadyUsed() {
         PreAuthCodeData data = new PreAuthCodeData();
         Cache.ValueWrapper dataWrapper = mock(Cache.ValueWrapper.class);
         when(dataWrapper.get()).thenReturn(data);
