@@ -97,10 +97,12 @@ public class InjiTestRunner {
 				useCaseToExecute = "";
 			}
 
-			HealthChecker healthcheck = new HealthChecker();
-			healthcheck.setCurrentRunningModule(GlobalConstants.INJICERTIFY);
-			Thread trigger = new Thread(healthcheck);
-			trigger.start();
+			if (!"true".equals(System.getenv("CI"))) {
+				HealthChecker healthcheck = new HealthChecker();
+				healthcheck.setCurrentRunningModule(GlobalConstants.INJICERTIFY);
+				Thread trigger = new Thread(healthcheck);
+				trigger.start();
+			}
 
 			if (!"true".equals(System.getenv("CI"))) {
 				KeycloakUserManager.removeUser();
