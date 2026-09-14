@@ -146,6 +146,9 @@ public class InjiTestRunner {
 				InjiCertifyUtil.dBCleanup();
 			} else {
 
+				if ("true".equals(System.getenv("CI"))) {
+					OTPListener.bTerminate = true;
+				}
 				startTestRunner();
 
 			}
