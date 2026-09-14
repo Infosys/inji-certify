@@ -86,15 +86,19 @@ public class InjiTestRunner {
 			GlobalMethods.reportCaptchaStatus(GlobalConstants.CAPTCHA_ENABLED, false);
 			setLogLevels();
 
-			useCaseToExecute = InjiCertifyConfigManager.getproperty("useCaseToExecute");
-			String envUseCase = System.getenv("ENV_USECASE");
-			if (envUseCase != null && !envUseCase.isBlank()) {
-				useCaseToExecute = envUseCase;
-			}
-			if (useCaseToExecute != null) {
-				useCaseToExecute = useCaseToExecute.trim();
+			if ("true".equals(System.getenv("CI"))) {
+				useCaseToExecute = "mock";
 			} else {
-				useCaseToExecute = "";
+				useCaseToExecute = InjiCertifyConfigManager.getproperty("useCaseToExecute");
+				String envUseCase = System.getenv("ENV_USECASE");
+				if (envUseCase != null && !envUseCase.isBlank()) {
+					useCaseToExecute = envUseCase;
+				}
+				if (useCaseToExecute != null) {
+					useCaseToExecute = useCaseToExecute.trim();
+				} else {
+					useCaseToExecute = "";
+				}
 			}
 
 			if (!"true".equals(System.getenv("CI"))) {
