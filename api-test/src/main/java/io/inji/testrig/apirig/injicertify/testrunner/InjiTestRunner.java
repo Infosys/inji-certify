@@ -131,7 +131,7 @@ public class InjiTestRunner {
 				}
 			}
 
-			if (useCaseToExecute.equalsIgnoreCase("mosipid")) {
+			if (useCaseToExecute.equalsIgnoreCase("mosipid") && !"true".equals(System.getenv("CI"))) {
 
 				InjiCertifyUtil.dBCleanup();
 
