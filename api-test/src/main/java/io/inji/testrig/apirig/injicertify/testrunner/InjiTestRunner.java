@@ -132,7 +132,10 @@ public class InjiTestRunner {
 			}
 
 			// Needed for every use case, not just mosipid, else eSignet returns 403 Forbidden
-			AdminTestUtil.fetchAndStoreCsrfToken();
+			// Skip in CI: eSignetbaseurl points to external MOSIP host unreachable from CI network
+			if (!"true".equals(System.getenv("CI"))) {
+				AdminTestUtil.fetchAndStoreCsrfToken();
+			}
 			
 			if (useCaseToExecute.equalsIgnoreCase("mosipid")) {
 
