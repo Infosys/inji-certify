@@ -202,8 +202,10 @@ public class InjiTestRunner {
 		BaseTestCase.currentModule = BaseTestCase.runContext + GlobalConstants.INJICERTIFY;
 		BaseTestCase.certsForModule = BaseTestCase.runContext + GlobalConstants.INJICERTIFY;
 		AdminTestUtil.copymoduleSpecificAndConfigFile(GlobalConstants.INJICERTIFY);
-		BaseTestCase.otpListener = new OTPListener();
-		BaseTestCase.otpListener.run();
+		if (!"true".equals(System.getenv("CI"))) {
+			BaseTestCase.otpListener = new OTPListener();
+			BaseTestCase.otpListener.run();
+		}
 	}
 
 	private static void setLogLevels() {
