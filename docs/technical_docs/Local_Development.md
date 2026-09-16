@@ -58,7 +58,7 @@ mosip.certify.integration.data-provider-plugin=MockCSVDataProviderPlugin
 ## CSV Plugin specific configurations
 # Path to CSV file
 # Classpath can be used to load file from resources folder
-mosip.certify.mock.data-provider.csv-registry-uri=classpath:farmer-identity-data.csv
+mosip.certify.mock.data-provider.csv-registry-uri=classpath:farmer_identity_data.csv
 # Use the correct URI if the file is hosted.
 #mosip.certify.mock.data-provider.csv-registry-uri=https://inji.github.io/inji-config/collab/farmer-identity-data.csv
 
@@ -74,8 +74,8 @@ mosip.certify.mock.data-provider.csv.data-columns=id,name,age
 <dependency>
     <groupId>io.inji.certify</groupId>
     <artifactId>mock-certify-plugin</artifactId>
-    <!-- Use the latest version or the version if the existing plugin is modified --> 
-    <version>0.6.0</version>
+    <!-- Use the latest release from https://github.com/inji/digital-credential-plugins/releases (or the version if the existing plugin is modified) -->
+    <version>LATEST_RELEASE_VERSION</version>
 </dependency>
 ```
 
@@ -104,8 +104,8 @@ mosip.certify.data-provider-plugin.postgres.scope-query-mapping={\
 <dependency>
     <groupId>io.inji.certify</groupId>
     <artifactId>postgres-dataprovider-plugin</artifactId>
-    <!-- Use the latest version or the version if the existing plugin is modified --> 
-    <version>0.6.0</version>
+    <!-- Use the latest release from https://github.com/inji/digital-credential-plugins/releases (or the version if the existing plugin is modified) -->
+    <version>LATEST_RELEASE_VERSION</version>
 </dependency>
 ```
 
