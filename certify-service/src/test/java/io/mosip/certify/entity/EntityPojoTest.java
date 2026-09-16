@@ -167,7 +167,6 @@ public class EntityPojoTest {
         s.onCreate();
         assertNotNull(s.getCreatedDtimes());
         assertNotNull(s.toString());
-        assertNotNull(s.hashCode());
     }
 
     @Test
@@ -233,7 +232,6 @@ public class EntityPojoTest {
 
         CredentialConfig same = new CredentialConfig();
         assertNotEquals(cc, same);
-        assertNotNull(cc.hashCode());
     }
 
     @Test
@@ -254,7 +252,6 @@ public class EntityPojoTest {
         empty.setName("Other");
         assertNotEquals(md, empty);
         assertNotNull(md.toString());
-        assertNotNull(md.hashCode());
 
         MetaDataDisplay.Logo logo2 = new MetaDataDisplay.Logo();
         logo2.setUri("uri");
@@ -279,7 +276,6 @@ public class EntityPojoTest {
         assertTrue(claims.isMandatory());
         assertEquals("N", claims.getDisplay().get(0).getName());
         assertNotNull(claims.toString());
-        assertNotNull(claims.hashCode());
     }
 
     @Test
@@ -298,6 +294,5 @@ public class EntityPojoTest {
         blank.setStatusPurpose("suspension");
         assertNotEquals(csd, blank);
         assertNotNull(csd.toString());
-        assertNotNull(csd.hashCode());
     }
 }
