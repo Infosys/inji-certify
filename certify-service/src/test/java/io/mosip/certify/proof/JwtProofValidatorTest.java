@@ -526,7 +526,7 @@ class JwtProofValidatorTest {
     }
 
     @Test
-    void testValidateV2_ValidJWT_Ed25519() throws Exception {
+    void testValidateV2_ValidJWT_EdDSA() throws Exception {
         String keyId = "did:jwk:";
         String credentialProof = createValidEd25519JWT(keyId);
         Map<String, Object> proofConfig = Map.of("jwt", Map.of(Constants.PROOF_SIGNING_ALG_VALUES_SUPPORTED, List.of("EdDSA")));
