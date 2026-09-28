@@ -1,4 +1,4 @@
-FROM injistack/inji-certify:1.0.0-alpha.1
+FROM injistack/inji-certify:1.0.0-alpha.2-develop
 
 ARG SOURCE
 ARG COMMIT_HASH
