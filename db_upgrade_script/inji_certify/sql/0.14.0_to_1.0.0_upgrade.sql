@@ -1,3 +1,18 @@
+-- -------------------------------------------------------------------------------------------------
+-- Upgrade Script : v0.14.0 to v1.0.0
+-- Release name   : 1.0.0-alpha.1, 1.0.0-alpha.2
+-- Database       : inji_certify
+-- Purpose        : Apply schema changes introduced across the 1.0.0 pre-releases.
+--                  Statements are grouped below by the pre-release in which they were introduced;
+--                  the grouping is documentation only and does not change execution order or result.
+-- -------------------------------------------------------------------------------------------------
+
+-- -------------------------------------------------------------------------------------------------
+-- SECTION 1: Align credential_config with OpenID4VCI 1.0
+-- Introduced in: 1.0.0-alpha.1
+-- -------------------------------------------------------------------------------------------------
+-- Migrate display logo "url" to "uri", rename credential_subject to claims, and
+-- replace the vc+sd-jwt credential format with dc+sd-jwt.
 UPDATE certify.credential_config
 SET display = COALESCE((
     SELECT jsonb_agg(
@@ -25,6 +40,10 @@ UPDATE certify.credential_config
 SET credential_format = 'dc+sd-jwt'
 WHERE credential_format = 'vc+sd-jwt';
 
+-- -------------------------------------------------------------------------------------------------
+-- SECTION 2: authorization_request_details table (embedded inji-verify library)
+-- Introduced in: 1.0.0-alpha.2
+-- -------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS certify.authorization_request_details (
     request_id      character varying(40) NOT NULL,
     transaction_id  character varying(40) NOT NULL,
@@ -41,6 +60,10 @@ COMMENT ON COLUMN certify.authorization_request_details.expires_at IS 'Epoch-mil
 
 CREATE INDEX IF NOT EXISTS idx_ard_transaction_id ON certify.authorization_request_details (transaction_id);
 
+-- -------------------------------------------------------------------------------------------------
+-- SECTION 3: vc_submission table (embedded inji-verify library)
+-- Introduced in: 1.0.0-alpha.2
+-- -------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS certify.vc_submission (
     transaction_id character varying(40) NOT NULL,
     vc             text NOT NULL
@@ -52,6 +75,10 @@ COMMENT ON COLUMN certify.vc_submission.vc IS 'Base64-encoded or JSON VC extract
 
 CREATE INDEX IF NOT EXISTS idx_vc_submission_transaction_id ON certify.vc_submission (transaction_id);
 
+-- -------------------------------------------------------------------------------------------------
+-- SECTION 4: vp_submission table (embedded inji-verify library)
+-- Introduced in: 1.0.0-alpha.2
+-- -------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS certify.vp_submission (
     request_id              character varying(40) NOT NULL,
     vp_token                VARCHAR NULL,
@@ -77,6 +104,10 @@ COMMENT ON COLUMN certify.vp_submission.response_code_used IS 'Whether the respo
 
 CREATE INDEX IF NOT EXISTS idx_vp_submission_response_code ON certify.vp_submission (response_code);
 
+-- -------------------------------------------------------------------------------------------------
+-- SECTION 5: Update JWT proof signing algorithms (Ed25519 -> EdDSA)
+-- Introduced in: 1.0.0-alpha.1
+-- -------------------------------------------------------------------------------------------------
 UPDATE certify.credential_config
 SET proof_types_supported = '{"jwt": {"proof_signing_alg_values_supported": ["RS256", "ES256", "PS256", "EdDSA"]}}'::jsonb
 WHERE proof_types_supported = '{}'::jsonb;
