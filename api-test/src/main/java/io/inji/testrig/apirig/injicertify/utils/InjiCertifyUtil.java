@@ -3071,12 +3071,12 @@ public static void configureOtp() {
 		try {
 			json = new JSONObject(body);
 		} catch (JSONException e) {
-			throw new RuntimeException("mDoc response is not valid JSON for " + testCaseName + ": " + body);
+			throw new RuntimeException("mDoc response is not valid JSON for " + testCaseName);
 		}
 
 		if (!json.has("credentials")) {
 			throw new RuntimeException(
-				"mDoc response missing 'credentials' array for " + testCaseName + ". Got: " + body);
+				"mDoc response missing 'credentials' array for " + testCaseName);
 		}
 
 		JSONArray credentials = json.getJSONArray("credentials");
@@ -3097,7 +3097,7 @@ public static void configureOtp() {
 			throw new RuntimeException(
 				"mDoc 'credential' must be a base64url string per OpenID4VCI v1.0, but got type: "
 				+ credentialField.getClass().getSimpleName()
-				+ " for " + testCaseName + ". Full response: " + body);
+				+ " for " + testCaseName);
 		}
 
 		String credentialStr = (String) credentialField;
@@ -3116,8 +3116,7 @@ public static void configureOtp() {
 				+ decoded.length + " bytes");
 		} catch (IllegalArgumentException e) {
 			throw new RuntimeException(
-				"mDoc 'credential' is not valid base64url for " + testCaseName
-				+ ": " + credentialStr.substring(0, Math.min(80, credentialStr.length())) + "...");
+				"mDoc 'credential' is not valid base64url for " + testCaseName);
 		}
 	}
 	
