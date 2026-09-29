@@ -3,8 +3,6 @@
 -- Release name   : 1.0.0-alpha.1, 1.0.0-alpha.2
 -- Database       : inji_certify
 -- Purpose        : Apply schema changes introduced across the 1.0.0 pre-releases.
---                  Statements are grouped below by the pre-release in which they were introduced;
---                  the grouping is documentation only and does not change execution order or result.
 -- -------------------------------------------------------------------------------------------------
 
 -- -------------------------------------------------------------------------------------------------
