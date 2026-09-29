@@ -28,6 +28,12 @@ Certify depends on the `verify-core` artifact and wires its Spring beans into th
     <artifactId>verify-core</artifactId>
     <version>1.0.0-alpha.2-SNAPSHOT</version>
     <!-- pixelpass-jar excluded to avoid a duplicate with Certify's own copy -->
+    <exclusions>
+        <exclusion>
+            <groupId>io.inji</groupId>
+            <artifactId>pixelpass-jar</artifactId>
+        </exclusion>
+    </exclusions>
 </dependency>
 ```
 

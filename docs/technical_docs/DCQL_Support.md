@@ -148,7 +148,7 @@ sequenceDiagram
 
 ## Local Testing Note
 
-On the `local` profile Certify uses `vp_request_config-local.json`, which additionally carries hardcoded `clientId` and `nonce` values matching a sample VP token, so the verify library's signature / domain / challenge checks pass deterministically without regenerating a VP per run. **These overrides are honored only on the `local` profile** — on every other profile they are ignored (with a warning) so the verify library generates a fresh nonce and VP replay protection is preserved. Deployed configurations must use `vp_request_config.json` with no hardcoded `clientId` / `nonce`.
+On the `local` profile Certify uses `vp_request_config-local.json`, which additionally carries hardcoded `clientId` and `nonce` values matching a sample VP token, so the verify library's signature / domain / challenge checks pass deterministically without regenerating a VP per run. **These overrides are honored only on the `local` profile** — on every other profile they are ignored (with a warning) so the verify library generates a fresh nonce and VP replay protection is preserved. Deployed configurations must use `vp_request_config.json` with no hardcoded `clientId` / `nonce`. On non-`local` profiles the file is fetched remotely from `mosip.certify.vp-request.config-file-url`, so serve it over **HTTPS** and restrict write access to it — a modified `dcqlQuery` changes which credentials Certify accepts.
 
 ---
 

@@ -60,8 +60,8 @@ sequenceDiagram
     U-->>W: 12. Approve
     W->>IC: 13. POST Content-Type: application/x-www-form-urlencoded /iae<br/>{auth_session=...&openid4vp_response=...}
     IC->>IC: 14. Validate auth_session
-    IC->>IVP: 15. POST /oid4vp/response<br/>forward openid4vp_response payload to verify VP
-    IVP->>IVP: 16. verify the VP response
+    IC->>IVP: 15. Submit vp_token with the stored request context to embedded verify-core (in-process — no external /oid4vp/response call)
+    IVP->>IVP: 16. verify the VP response against the DCQL query
     IVP->>IC: 17. VP verification result (e.g., valid/invalid)
     
     alt If VP is valid 
@@ -109,12 +109,12 @@ The Wallet interacts with the VP Verifier
 3. **User to Wallet**: User approves.
 4. **Wallet to Inji Certify**: Send VP response
     - POST Content-Type: application/x-www-form-urlencoded /iae<br/>{auth_session=...&openid4vp_response=...}
-    - if response_mode is `iae_post` then openid4vp_response is unencrypted, {"vp_token": "...", "presentation_submission": {...}}
+    - if response_mode is `iae_post` then openid4vp_response is unencrypted, `{"vp_token": {...}}` — the `vp_token` is keyed by DCQL query id; DCQL mode does not use `presentation_submission`
     - if response_mode is `iae_post.jwt` then openid4vp_response is encrypted, {response='...'}
 5. **Inji Certify**: Validates `auth_session`
-6. **Inji Certify to VP Verifier**: Forward vp response to the VP Verifier for verification on response_uri shared in `openid4vp_request`
-7. **VP Verifier**: Verifies the VP response
-8. **VP Verifier to Inji Certify**: Sends VP verification result (e.g., valid/invalid).
+6. **Inji Certify (embedded verify-core)**: Passes the `vp_token` and the stored request context to the embedded Inji Verify (`verify-core`) library — an in-process call, not an external HTTP request to a separately deployed verifier.
+7. **verify-core**: Verifies the VP response against the DCQL query.
+8. **verify-core to Inji Certify**: Returns the VP verification result (e.g., valid/invalid).
 9. **Inji Certify**: Confirms VC is Valid (positive flow).
 10. **Inji Certify to Wallet**: Responds with `200 OK` and `status:"ok"` along with an `authorization_code`.
 11. **Wallet to Inji Certify**: `POST /oauth/token` (includes `grant_type="authorization_code"`, `code`).
