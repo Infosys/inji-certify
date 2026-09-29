@@ -16,6 +16,8 @@ DPoP turns the token into a **sender-constrained** credential:
 
 A stolen token is then useless without the private key.
 
+> **Note:** DPoP defends against a *stolen token alone* — not against a full request replay. An attacker who captures **both** the token and its DPoP proof can replay that request once, before the proof's first use, since the `jti` replay cache only rejects *later* reuses (within the freshness window). Protect every hop with **TLS** so token and proof are never exposed in transit.
+
 **Inji Certify is the resource server** in this model — it consumes and validates DPoP; it does **not** issue DPoP-bound tokens.
 
 | Party | Role | Responsibility |
@@ -64,9 +66,9 @@ The **downgrade guard** is the point of the feature: accepting a sender-constrai
 Two design points worth noting:
 
 - **`htu` is compared against the issuer's public domain URL** (`mosip.certify.domain.url` + request URI), **not** `request.getRequestURL()`. Certify typically runs behind a reverse proxy, so the URL Tomcat sees is the internal one, while the wallet signs `htu` over the public `credential_endpoint` it read from the issuer metadata. Comparing against the container's view would reject every proof in a proxied deployment.
-- **Replay is checked last.** A proof's `jti` is only marked used once every other check has passed, so a request rejected for any other reason does not burn a valid `jti`.
+- **Replay is checked last.** A proof's `jti` is only marked used once every other DPoP validation check has passed, so a proof rejected by an earlier DPoP validation check does not burn a valid `jti`. (Note: `jti` is marked during proof validation, before the request reaches downstream processing — a request rejected *after* successful proof validation has already consumed its `jti`.)
 
-> **Note:** Used `jti` values are remembered in the `dpopJti` cache. Its TTL (`mosip.certify.dpop.jti.expire.seconds`) **must exceed** `proof-max-age + clock-skew`; otherwise a `jti` could be evicted while its proof is still within the freshness window, leaving the proof replayable. In multi-replica deployments use a distributed cache (`spring.cache.type=redis`) — with `spring.cache.type=simple` each pod keeps its own `dpopJti` map, so a replayed proof only needs to land on a different pod to slip through.
+> **Note:** Used `jti` values are remembered in the `dpopJti` cache. Its TTL (`mosip.certify.dpop.jti.expire.seconds`) **must exceed** `proof-max-age + 2 * clock-skew` — a proof accepted at the maximum future `iat` (`now + clock-skew`) stays fresh for `proof-max-age + 2 * clock-skew` after acceptance, so a shorter TTL could evict its `jti` while the proof is still replayable. In multi-replica deployments use a distributed cache (`spring.cache.type=redis`) — with `spring.cache.type=simple` each pod keeps its own `dpopJti` map, so a replayed proof only needs to land on a different pod to slip through.
 
 ---
 
@@ -129,7 +131,7 @@ WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof
 | `mosip.certify.dpop.allowed-algorithms` | Signature algorithms accepted on a DPoP proof, and advertised in the `algs` challenge parameter. Asymmetric only. | `ES256,ES384,ES512,RS256,PS256,EdDSA` |
 | `mosip.certify.dpop.proof-max-age` | How old a proof's `iat` may be, in seconds. | `60` |
 | `mosip.certify.dpop.clock-skew` | Tolerance for device clock drift, applied on both sides of the freshness window. | `10` |
-| `mosip.certify.dpop.jti.expire.seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + clock-skew`, or an evicted `jti` leaves its proof replayable. | `120` |
+| `mosip.certify.dpop.jti.expire.seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + 2 * clock-skew`, or an evicted `jti` leaves its proof replayable. | `120` |
 | `mosip.certify.cache.names` | Must include `dpopJti` for the replay cache to exist. | `...,dpopJti` |
 
 ---
