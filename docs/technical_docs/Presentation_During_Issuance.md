@@ -28,6 +28,8 @@ The issuance process involves communication between four key participants:
 
 * **VP Verifier**: A service that formally requests and verifies a Verifiable Presentation (VP) from the user's wallet to confirm they meet certain criteria. This is often based on OpenID4VP.
 
+> **Implementation note:** In Inji Certify the **VP Verifier** is not a separately deployed service — it is the **Inji Verify (`verify-core`) library embedded in-process** in Certify. The presentation request is expressed using **DCQL**. See [Inji Verify as a Library](./Inji_Verify_As_A_Library.md) and [DCQL Support](./DCQL_Support.md) for details.
+
 ## Sequence Diagram
 
 ```mermaid
