@@ -110,9 +110,9 @@ The Wallet interacts with the VP Verifier
 4. **Wallet to Inji Certify**: Send VP response
     - POST Content-Type: application/x-www-form-urlencoded /iae<br/>{auth_session=...&openid4vp_response=...}
     - if response_mode is `iae_post` then openid4vp_response is unencrypted, `{"vp_token": {...}}` — the `vp_token` is keyed by DCQL query id; DCQL mode does not use `presentation_submission`
-    - if response_mode is `iae_post.jwt` then openid4vp_response is encrypted, {response='...'}
+    - if response_mode is `iae_post.jwt` is not supported by the current `/oauth/iae` processing path. It supplies an encrypted `{response='...'}` value, but the handler does not decode it into `vp_token`.
 5. **Inji Certify**: Validates `auth_session`
-6. **Inji Certify (embedded verify-core)**: Passes the `vp_token` and the stored request context to the embedded Inji Verify (`verify-core`) library — an in-process call, not an external HTTP request to a separately deployed verifier.
+6. **Inji Certify (embedded verify-core)**: For `iae_post`, passes the `vp_token` and the stored request context to the embedded Inji Verify (`verify-core`) library.
 7. **verify-core**: Verifies the VP response against the DCQL query.
 8. **verify-core to Inji Certify**: Returns the VP verification result (e.g., valid/invalid).
 9. **Inji Certify**: Confirms VC is Valid (positive flow).
