@@ -21,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -35,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -58,6 +61,9 @@ public class IarVpRequestServiceTest {
     @Mock
     private VerifiablePresentationRequestService vpRequestService;
 
+    @Mock
+    private Environment environment;
+
     @InjectMocks
     private IarVpRequestService iarVpRequestService;
 
@@ -69,7 +75,12 @@ public class IarVpRequestServiceTest {
         ReflectionTestUtils.setField(iarVpRequestService, "objectMapper", new ObjectMapper());
         ReflectionTestUtils.setField(iarVpRequestService, "vpRequestConfigUrl", "http://localhost/vp_request_config.json");
         ReflectionTestUtils.setField(iarVpRequestService, "verifierClientId", "verifier-client-id");
-        ReflectionTestUtils.setField(iarVpRequestService, "activeProfile", "");
+    }
+
+    private void withLocalProfile(boolean local) {
+        when(environment.acceptsProfiles(argThat((Profiles profiles) ->
+                profiles != null && profiles.matches(activeProfile -> "local".equals(activeProfile)))))
+                .thenReturn(local);
     }
 
     @Test
@@ -219,7 +230,7 @@ public class IarVpRequestServiceTest {
         appender.start();
         serviceLogger.addAppender(appender);
         try {
-            ReflectionTestUtils.setField(iarVpRequestService, "activeProfile", "prod");
+            withLocalProfile(false);
             when(restTemplate.getForObject(anyString(), eq(String.class)))
                     .thenReturn(CONFIG_WITH_OVERRIDES);
             VPRequestResponseDto stub = stubVpResponse();
@@ -244,7 +255,7 @@ public class IarVpRequestServiceTest {
 
     @Test
     public void createVpRequest_nonLocalProfile_noOverrides_usesVerifierClientIdAndNullNonce() {
-        ReflectionTestUtils.setField(iarVpRequestService, "activeProfile", "prod");
+        withLocalProfile(false);
         when(restTemplate.getForObject(anyString(), eq(String.class)))
                 .thenReturn(CONFIG_WITHOUT_OVERRIDES);
         VPRequestResponseDto stub = stubVpResponse();
@@ -261,7 +272,7 @@ public class IarVpRequestServiceTest {
 
     @Test
     public void createVpRequest_localProfile_withOverrides_appliesConfigClientIdAndNonce() {
-        ReflectionTestUtils.setField(iarVpRequestService, "activeProfile", "local");
+        withLocalProfile(true);
         ReflectionTestUtils.setField(iarVpRequestService,
                 "vpRequestConfigUrl", "vp_request_config-local.json");
         VPRequestResponseDto stub = stubVpResponse();
@@ -279,7 +290,7 @@ public class IarVpRequestServiceTest {
 
     @Test
     public void createVpRequest_localProfile_noOverrides_fallsBackToVerifierClientId() {
-        ReflectionTestUtils.setField(iarVpRequestService, "activeProfile", "local");
+        withLocalProfile(true);
         ReflectionTestUtils.setField(iarVpRequestService,
                 "vpRequestConfigUrl", "vp_request_config.json"); // no clientId/nonce
         VPRequestResponseDto stub = stubVpResponse();
