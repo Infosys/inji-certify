@@ -16,9 +16,11 @@ DPoP turns the token into a **sender-constrained** credential:
 
 A stolen token is then useless without the private key.
 
-> **Note:** DPoP defends against a *stolen token alone* — not against a full request replay. An attacker who captures **both** the token and its DPoP proof can replay that request once, before the proof's first use, since the `jti` replay cache only rejects *later* reuses (within the freshness window). Protect every hop with **TLS** so token and proof are never exposed in transit.
+> **Note:** DPoP defends against a *stolen token alone* — not against a full request replay. If an attacker captures **both** the token and an as-yet-unused proof, they can use that proof once, before the wallet does; the wallet's own request is then rejected as a replay (the `jti` cache only rejects *later* reuses, within the freshness window). Protect every hop with **TLS** so token and proof are never exposed in transit.
 
 **Inji Certify is the resource server** in this model — it consumes and validates DPoP; it does **not** issue DPoP-bound tokens.
+
+> **Note:** Because Certify never stamps `cnf.jkt`, access tokens minted by Certify's own `/oauth/token` — the pre-authorized code flow and the Presentation During Issuance flow — are plain Bearer tokens. DPoP therefore applies only when an **external authorization server** such as eSignet issues the token; it does not apply to tokens Certify issues itself.
 
 | Party | Role | Responsibility |
 |---|---|---|
@@ -26,7 +28,7 @@ A stolen token is then useless without the private key.
 | eSignet (or compatible AS) | Authorization server | Mints the access token and stamps `cnf.jkt` |
 | **Inji Certify** | **Resource server** | Validates the proof and enforces the token↔proof↔key binding |
 
-> **Note:** Certify only sees a `cnf.jkt` claim if the authorization server binds the token. In eSignet this happens for clients registered with `additionalConfig.dpop_bound_access_tokens: true`, and it arrived in **eSignet 1.8**. Against an older authorization server no token carries `cnf.jkt`, so every DPoP path fails by construction.
+> **Note:** Certify only sees a `cnf.jkt` claim if the authorization server binds the token. In eSignet this happens for clients registered with `additionalConfig.dpop_bound_access_tokens: true`, supported in recent eSignet releases. Against an older authorization server no token carries `cnf.jkt`, so every DPoP path fails by construction.
 
 ---
 
@@ -38,10 +40,10 @@ Certify accepts an access token under either the `Bearer` or the `DPoP` authoriz
 |---|---|---|---|
 | plain (no `cnf`) | `Bearer` | **accepted** | ordinary Bearer flow |
 | DPoP-bound (`cnf.jkt`) | `DPoP` + valid proof | **accepted** | proof demonstrates possession |
-| DPoP-bound (`cnf.jkt`) | `Bearer` | **refused** | downgrade guard (RFC 9449 §7.1) |
+| DPoP-bound (`cnf.jkt`) | `Bearer` | **refused** | downgrade guard (RFC 9449 §7.2) |
 | plain (no `cnf`) | `DPoP` | **refused** | nothing to bind the proof to |
 
-The **downgrade guard** is the point of the feature: accepting a sender-constrained token as a plain Bearer token would silently discard exactly the protection the binding provides, letting a stolen token work again. Scheme names are compared case-insensitively (`DPoP`, `dpop`, `Bearer`, `bearer` all resolve).
+The **downgrade guard** (RFC 9449 §7.2, *Compatibility with the Bearer Authentication Scheme*) is the point of the feature: accepting a sender-constrained token as a plain Bearer token would silently discard exactly the protection the binding provides, letting a stolen token work again. Scheme names are compared case-insensitively (`DPoP`, `dpop`, `Bearer`, `bearer` all resolve).
 
 ---
 
@@ -133,6 +135,8 @@ WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof
 | `mosip.certify.dpop.clock-skew` | Tolerance for device clock drift, applied on both sides of the freshness window. | `10` |
 | `mosip.certify.dpop.jti.expire.seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + 2 * clock-skew`, or an evicted `jti` leaves its proof replayable. | `120` |
 | `mosip.certify.cache.names` | Must include `dpopJti` for the replay cache to exist. | `...,dpopJti` |
+| `mosip.certify.cache.expire-in-seconds` | Per-cache TTL map; must include a `dpopJti` entry (wired to `mosip.certify.dpop.jti.expire.seconds`), otherwise the TTL rule above is never applied. | `{..., 'dpopJti': ${mosip.certify.dpop.jti.expire.seconds}}` |
+| `mosip.certify.cache.size` | Per-cache max-entries map for the `simple` (in-memory) cache; give `dpopJti` a bound so the replay cache does not grow unboundedly. | `{..., 'dpopJti': 10000}` |
 
 ---
 

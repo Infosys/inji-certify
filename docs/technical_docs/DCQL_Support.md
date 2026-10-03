@@ -19,7 +19,7 @@ Because the response is keyed by the query, DCQL mode does **not** use a `presen
 **How Certify uses it:**
 
 1. Certify reads a **`dcqlQuery`** block from its VP request configuration file (`mosip.certify.vp-request.config-file-url`).
-2. The embedded [inji-verify library](./Inji_Verify_As_A_Library.md) turns it into a signed OpenID4VP authorization request (parsing it into a `DCQLQueryDto`).
+2. The embedded [inji-verify library](./Inji_Verify_As_A_Library.md) turns it into an OpenID4VP authorization request (by value), parsing it into a `DCQLQueryDto`.
 3. Certify embeds the query as **`dcql_query`** inside the `openid4vp_request` returned to the wallet in the Interactive Authorization Response.
 4. The wallet selects credentials that satisfy the query, builds a DCQL-keyed `vp_token`, and posts it back to Certify's `/oauth/iae` endpoint.
 5. Certify forwards the `vp_token` to the inji-verify library for verification. In DCQL mode **only `vp_token` (and state) are required — there is no `presentation_submission`.**
@@ -87,7 +87,7 @@ After the inji-verify library produces the authorization request, Certify assemb
 }
 ```
 
-`response_mode` is mapped from the verify library's `direct_post` / `direct_post.jwt` to Certify's `iae_post` / `iae_post.jwt` (unencrypted / encrypted), and `response_uri` points at Certify's own `/oauth/iae` endpoint so the wallet submits the VP back to Certify.
+`response_mode` is mapped from the verify library's `direct_post` / `direct_post.jwt` to Certify's `iae_post` / `iae_post.jwt`. Only `iae_post` (unencrypted) is supported for now — `iae_post.jwt` (encrypted) is not yet processed. `response_uri` points at Certify's own `/oauth/iae` endpoint so the wallet submits the VP back to Certify.
 
 ---
 
@@ -124,7 +124,7 @@ sequenceDiagram
     OAuth->>ReqSvc: createVpRequest()
     ReqSvc->>ReqSvc: Load dcqlQuery from vp_request_config
     ReqSvc->>Verify: createAuthorizationRequest(dcqlQuery)
-    Verify-->>ReqSvc: Signed OpenID4VP request (nonce, dcql_query)
+    Verify-->>ReqSvc: OpenID4VP request by value (nonce, dcql_query)
     ReqSvc->>ReqSvc: convertToOpenId4VpRequest() → embed dcql_query, map response_mode
     OAuth-->>W: 200 require_interaction + openid4vp_request { dcql_query }
 
@@ -140,7 +140,7 @@ sequenceDiagram
         OAuth-->>W: 200 { authorization_code }
     else Verification failed
         PresSvc-->>OAuth: status=error
-        OAuth-->>W: 400 invalid_request
+        OAuth-->>W: 400 { status: "error" }
     end
 ```
 
@@ -156,7 +156,7 @@ On the `local` profile Certify uses `vp_request_config-local.json`, which additi
 
 | Property Name | Description | Example Value |
 |---|---|---|
-| `mosip.certify.vp-request.config-file-url` | Location of the VP request configuration file carrying the `dcqlQuery` block. Classpath resource on the `local` profile; fetched over HTTP otherwise. | `vp_request_config.json` |
+| `mosip.certify.vp-request.config-file-url` | Location of the VP request configuration file carrying the `dcqlQuery` block. Classpath resource on the `local` profile; fetched over HTTP(S) otherwise. | `vp_request_config-local.json` (local); `http://certify-nginx/vp_request_config.json` (deployed) |
 | `mosip.certify.verify.service.verifier-client-id` | Verifier `client_id` used by the embedded inji-verify library when creating the request. | `certify-verifier-client` |
 | `mosip.certify.oauth.interactive-authorization-endpoint` | Certify's own IAR endpoint, used as the `response_uri` for VP submission. | `${mosip.certify.authorization.url}${server.servlet.path}/oauth/iae` |
 
