@@ -136,7 +136,7 @@ WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof
 | `mosip.certify.dpop.jti.expire.seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + 2 * clock-skew`, or an evicted `jti` leaves its proof replayable. | `120` |
 | `mosip.certify.cache.names` | Must include `dpopJti` for the replay cache to exist. | `...,dpopJti` |
 | `mosip.certify.cache.expire-in-seconds` | Per-cache TTL map; must include a `dpopJti` entry (wired to `mosip.certify.dpop.jti.expire.seconds`), otherwise the TTL rule above is never applied. | `{..., 'dpopJti': ${mosip.certify.dpop.jti.expire.seconds}}` |
-| `mosip.certify.cache.size` | Per-cache max-entries map for the `simple` (in-memory) cache; give `dpopJti` a bound so the replay cache does not grow unboundedly. | `{..., 'dpopJti': 10000}` |
+| `mosip.certify.cache.size` | Per-cache max-entries map for the `simple` (in-memory) cache. Size `dpopJti` to hold **every proof accepted within its TTL** — size-based eviction can drop a still-fresh `jti` before its TTL expires, letting a captured proof pass the replay check. Bound it for the expected proof rate, or use a cache whose policy guarantees TTL retention (e.g. Redis). | `{..., 'dpopJti': 10000}` |
 
 ---
 

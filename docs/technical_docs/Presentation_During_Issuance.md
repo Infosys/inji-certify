@@ -47,7 +47,7 @@ sequenceDiagram
     IC-->>W: 4. OAuth Authorization server(AS) metadata 
     
     Note over W,IC: 1. Authorization to download credential
-    W->>IC: 5. POST Content-Type: application/x-www-form-urlencoded /iae<br/>{response_type="code", client_id, code_challenge, code_challenge_method:"S256", redirect_uri, interaction_types_supported=urn:openid:dcp:iae:openid4vp_presentation,urn:openid:dcp:iae:redirect_to_web}
+    W->>IC: 5. POST Content-Type: application/x-www-form-urlencoded /oauth/iae<br/>{response_type="code", client_id, code_challenge, code_challenge_method:"S256", redirect_uri, interaction_types_supported=urn:openid:dcp:iae:openid4vp_presentation,urn:openid:dcp:iae:redirect_to_web}
     IC->>IVP: 6. Create presentation request
     IVP-->>IC: 7. {request_id,transaction_id, {standard ovp request by value with response_mode as "direct_post" or "direct_post.jwt"}} (non-normative)
     IC->>IC: 8. store transaction id for the presentation request mapped to Auth Session
@@ -58,7 +58,7 @@ sequenceDiagram
     W->>W: 10. Display and select credential(s) which satisfies presentation request criteria
     W->>U: 11. User consent
     U-->>W: 12. Approve
-    W->>IC: 13. POST Content-Type: application/x-www-form-urlencoded /iae<br/>{auth_session=...&openid4vp_response=...}
+    W->>IC: 13. POST Content-Type: application/x-www-form-urlencoded /oauth/iae<br/>{auth_session=...&openid4vp_response=...}
     IC->>IC: 14. Validate auth_session
     IC->>IVP: 15. Submit vp_token with the stored request context to embedded verify-core (in-process — no external /oid4vp/response call)
     IVP->>IVP: 16. verify the VP response against the DCQL query
@@ -94,7 +94,7 @@ The Wallet discovers the Credential Issuer's(Inji Certify) and Authorization Ser
 ### Phase 1: Authorization to download credential
 
 The Wallet initiates the request, and the Issuer determines if a presentation is needed.
-1. **Wallet to Inji Certify**: `POST /iae` (Includes `response_type="code"`, `client_id`, `code_challenge`, `code_challenge_method:"S256"`, `redirect_uri`, `interaction_types_supported=urn:openid:dcp:iae:openid4vp_presentation,urn:openid:dcp:iae:redirect_to_web` for the desired credential).
+1. **Wallet to Inji Certify**: `POST /oauth/iae` (Includes `response_type="code"`, `client_id`, `code_challenge`, `code_challenge_method:"S256"`, `redirect_uri`, `interaction_types_supported=urn:openid:dcp:iae:openid4vp_presentation,urn:openid:dcp:iae:redirect_to_web` for the desired credential).
 2. **Inji Certify**: Evaluates incoming request and identifies whether a Verifiable Presentation (VP) is required for the credential issuance.
     - If a VP is required, it proceeds to create a presentation request using the embedded `verify-core` library.
     - If no VP is required, it continues with authorization code flow. (That is as per standard OpenId4VCI spec, not included here)
@@ -110,7 +110,7 @@ The Wallet interacts only with Inji Certify; VP verification happens in-process 
 2. **Wallet to User**: Prompts User for consent.
 3. **User to Wallet**: User approves.
 4. **Wallet to Inji Certify**: Send VP response
-    - POST Content-Type: application/x-www-form-urlencoded /iae<br/>{auth_session=...&openid4vp_response=...}
+    - POST Content-Type: application/x-www-form-urlencoded /oauth/iae<br/>{auth_session=...&openid4vp_response=...}
     - if response_mode is `iae_post` then openid4vp_response is unencrypted, `{"vp_token": {...}}` — the `vp_token` is keyed by DCQL query id; DCQL mode does not use `presentation_submission`
     - `iae_post.jwt` is not supported by the current `/oauth/iae` processing path. It supplies an encrypted `{response='...'}` value, but the handler does not decode it into `vp_token`.
 5. **Inji Certify**: Validates `auth_session`
