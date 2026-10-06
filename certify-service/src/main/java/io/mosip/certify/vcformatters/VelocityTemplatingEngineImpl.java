@@ -63,7 +63,6 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
     public void initialize() {
         engine = new VelocityEngine();
         engine.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8");
-        engine.setProperty(RuntimeConstants.OUTPUT_ENCODING, "UTF-8");
         engine.init();
         log.info("VelocityTemplatingEngineImpl initialized. Using Spring Cache for CredentialConfig.");
     }

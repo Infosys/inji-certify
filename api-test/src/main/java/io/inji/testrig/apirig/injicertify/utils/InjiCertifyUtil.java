@@ -49,7 +49,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.bitcoinj.core.Base58;
+import org.bitcoinj.base.Base58;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
