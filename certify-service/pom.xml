@@ -60,8 +60,8 @@
         <!-- templating dependencies -->
         <dependency>
             <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity</artifactId>
-            <version>1.7</version>
+            <artifactId>velocity-engine-core</artifactId>
+            <version>2.4.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.velocity.tools</groupId>
@@ -71,10 +71,6 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.velocity</groupId>
-                    <artifactId>velocity-engine-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -222,8 +218,7 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>10.0.2</version>
-            <scope>compile</scope>
+            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
