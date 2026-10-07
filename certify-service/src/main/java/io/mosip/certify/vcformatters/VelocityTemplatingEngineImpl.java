@@ -16,6 +16,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.util.introspection.SecureUberspector;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.EscapeTool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
         engine = new VelocityEngine();
         engine.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8");
         engine.setProperty(RuntimeConstants.UBERSPECT_CLASSNAME,
-                "org.apache.velocity.util.introspection.SecureUberspector");
+                SecureUberspector.class.getName());
         engine.setProperty(RuntimeConstants.INTROSPECTOR_RESTRICT_PACKAGES, "java.lang.reflect");
         engine.setProperty(RuntimeConstants.INTROSPECTOR_RESTRICT_CLASSES, String.join(",",
                 "java.lang.Class",
