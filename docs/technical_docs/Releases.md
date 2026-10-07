@@ -23,6 +23,8 @@ Step-by-Step Migration guide for upgrade from 0.11.0 to 0.12.0 is available at [
 
 ---
 
+# Changes in release 1.0.0-alpha.3
+
 ## Velocity upgraded from 1.7 to 2.4.1: template behaviour changes
 
 Credential templates (`vc_template`) are now rendered with Velocity 2.4.1. This fixes CVE-2020-13936.
@@ -43,4 +45,4 @@ Replace `$velocityCount` with `$foreach.count`, and `$velocityHasNext` with `$fo
 
 **3. Reflection blocked**
 
-`SecureUberspector` is enabled, so calls like `$x.getClass()` no longer work. Normal field access and the `$_dateTool` and `$_esc` tools are unaffected.
+`SecureUberspector` is enabled. Templates can no longer call methods on classes like `Class`, `ClassLoader`, `Runtime` or `System`, so `$x.getClass().forName(...)` no longer works. Normal field access and the `$_dateTool` and `$_esc` tools are unaffected.

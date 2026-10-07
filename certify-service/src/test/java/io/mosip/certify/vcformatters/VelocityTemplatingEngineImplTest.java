@@ -1,6 +1,10 @@
 package io.mosip.certify.vcformatters;
 
+import java.io.StringWriter;
 import java.util.*;
+
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -421,10 +425,10 @@ public class VelocityTemplatingEngineImplTest {
 
     @Test
     public void should_resolveReflectionEscape_when_secureUberspectorAbsent() {
-        org.apache.velocity.app.VelocityEngine insecure = new org.apache.velocity.app.VelocityEngine();
+        VelocityEngine insecure = new VelocityEngine();
         insecure.init();
-        java.io.StringWriter out = new java.io.StringWriter();
-        org.apache.velocity.VelocityContext ctx = new org.apache.velocity.VelocityContext();
+        StringWriter out = new StringWriter();
+        VelocityContext ctx = new VelocityContext();
         ctx.put("str", "hello");
         insecure.evaluate(ctx, out,
                 "insecure-control",
