@@ -63,6 +63,19 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
     public void initialize() {
         engine = new VelocityEngine();
         engine.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8");
+        engine.setProperty(RuntimeConstants.UBERSPECT_CLASSNAME,
+                "org.apache.velocity.util.introspection.SecureUberspector");
+        engine.setProperty(RuntimeConstants.INTROSPECTOR_RESTRICT_PACKAGES, "java.lang.reflect");
+        engine.setProperty(RuntimeConstants.INTROSPECTOR_RESTRICT_CLASSES, String.join(",",
+                "java.lang.Class",
+                "java.lang.ClassLoader",
+                "java.lang.Runtime",
+                "java.lang.System",
+                "java.lang.Thread",
+                "java.lang.ThreadGroup",
+                "java.lang.Process",
+                "java.lang.ProcessBuilder",
+                "java.lang.Compiler"));
         engine.init();
         log.info("VelocityTemplatingEngineImpl initialized. Using Spring Cache for CredentialConfig.");
     }
