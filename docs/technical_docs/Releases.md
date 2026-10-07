@@ -43,4 +43,4 @@ Replace `$velocityCount` with `$foreach.count`, and `$velocityHasNext` with `$fo
 
 **3. Reflection blocked**
 
-`SecureUberspector` is enabled, so calls like `$x.getClass()` no longer work. Normal field access and the `$date` and `$esc` tools are unaffected.
+`SecureUberspector` is enabled, so calls like `$x.getClass()` no longer work. Normal field access and the `$_dateTool` and `$_esc` tools are unaffected.
