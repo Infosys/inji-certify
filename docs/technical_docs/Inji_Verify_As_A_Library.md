@@ -116,7 +116,7 @@ sequenceDiagram
     Verify-->>PresSvc: VPVerificationResultDto (allChecksSuccessful)
     alt Verification successful
         PresSvc->>PresSvc: Extract identity (UIN/VID), issue authorization_code
-        OAuth-->>W: 200 { authorization_code }
+        OAuth-->>W: 200 { code }
     else Verification failed
         OAuth-->>W: 400 { status: "error" }
     end

@@ -137,7 +137,7 @@ sequenceDiagram
     Verify-->>PresSvc: Verification result
     alt All checks successful
         PresSvc-->>OAuth: status=ok + authorization_code
-        OAuth-->>W: 200 { authorization_code }
+        OAuth-->>W: 200 { code }
     else Verification failed
         PresSvc-->>OAuth: status=error
         OAuth-->>W: 400 { status: "error" }

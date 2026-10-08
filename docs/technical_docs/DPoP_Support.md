@@ -70,7 +70,7 @@ Two design points worth noting:
 - **`htu` is compared against the issuer's public domain URL** (`mosip.certify.domain.url` + request URI), **not** `request.getRequestURL()`. Certify typically runs behind a reverse proxy, so the URL Tomcat sees is the internal one, while the wallet signs `htu` over the public `credential_endpoint` it read from the issuer metadata. Comparing against the container's view would reject every proof in a proxied deployment.
 - **Replay is checked last.** A proof's `jti` is only marked used once every other DPoP validation check has passed, so a proof rejected by an earlier DPoP validation check does not burn a valid `jti`. (Note: `jti` is marked during proof validation, before the request reaches downstream processing — a request rejected *after* successful proof validation has already consumed its `jti`.)
 
-> **Note:** Used `jti` values are remembered in the `dpopJti` cache. Its TTL (`mosip.certify.dpop.jti.expire.seconds`) **must exceed** `proof-max-age + 2 * clock-skew` — a proof accepted at the maximum future `iat` (`now + clock-skew`) stays fresh for `proof-max-age + 2 * clock-skew` after acceptance, so a shorter TTL could evict its `jti` while the proof is still replayable. In multi-replica deployments use a distributed cache (`spring.cache.type=redis`) — with `spring.cache.type=simple` each pod keeps its own `dpopJti` map, so a replayed proof only needs to land on a different pod to slip through.
+> **Note:** Used `jti` values are remembered in the `dpopJti` cache. Its TTL (`mosip.certify.dpop.jti.cache-expire-seconds`) **must exceed** `proof-max-age + 2 * clock-skew` — a proof accepted at the maximum future `iat` (`now + clock-skew`) stays fresh for `proof-max-age + 2 * clock-skew` after acceptance, so a shorter TTL could evict its `jti` while the proof is still replayable. Certify **refuses to start** if the `dpopJti` TTL in `mosip.certify.cache.expire-in-seconds` is missing or below `proof-max-age + 2 * clock-skew`, so a misconfigured replay window is caught at startup rather than silently leaving proofs replayable. In multi-replica deployments use a distributed cache (`spring.cache.type=redis`) — with `spring.cache.type=simple` each pod keeps its own `dpopJti` map, so a replayed proof only needs to land on a different pod to slip through.
 
 ---
 
@@ -113,7 +113,7 @@ sequenceDiagram
 
 ## Failure Responses
 
-Every failure answers **`401 Unauthorized`** with a `WWW-Authenticate` challenge **in the scheme the caller used** (RFC 9449 §7.1) — a DPoP client is challenged with `DPoP`, a Bearer client with `Bearer`. The challenge carries `error`, `error_description`, and — for `invalid_dpop_proof` — an `algs` list advertising which algorithms a proof may be signed with. The `error_description` names the failing claim, so a wallet developer is told which specific check rejected the proof rather than a bare `invalid_dpop_proof`.
+A **proof-validation failure** answers **`401 Unauthorized`** with a `WWW-Authenticate` challenge **in the scheme the caller used** (RFC 9449 §7.1) — a DPoP client is challenged with `DPoP`, a Bearer client with `Bearer`. The challenge carries `error`, `error_description`, and — for `invalid_dpop_proof` — an `algs` list advertising which algorithms a proof may be signed with. The `error_description` names the failing claim, so a wallet developer is told which specific check rejected the proof rather than a bare `invalid_dpop_proof`.
 
 Example challenge for a rejected proof:
 
@@ -121,6 +121,8 @@ Example challenge for a rejected proof:
 HTTP/1.1 401 Unauthorized
 WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof ath does not match the presented access token", algs="ES256 ES384 ES512 RS256 PS256 EdDSA"
 ```
+
+> **Note:** A **server misconfiguration** — an invalid `mosip.certify.domain.url` (one with no scheme, so the `htu` reference URL cannot be built) or a missing `dpopJti` replay cache — is not the caller's fault, so it answers **`500` with `error="server_error"` and no `WWW-Authenticate` challenge**. A `401` here would tell every wallet to fix a credential that may be perfectly valid, when the fix is operator-side. The offending value is logged for the operator and kept out of the response.
 
 ---
 
@@ -133,9 +135,9 @@ WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof
 | `mosip.certify.dpop.allowed-algorithms` | Signature algorithms accepted on a DPoP proof, and advertised in the `algs` challenge parameter. Asymmetric only. | `ES256,ES384,ES512,RS256,PS256,EdDSA` |
 | `mosip.certify.dpop.proof-max-age` | How old a proof's `iat` may be, in seconds. | `60` |
 | `mosip.certify.dpop.clock-skew` | Tolerance for device clock drift, applied on both sides of the freshness window. | `10` |
-| `mosip.certify.dpop.jti.expire.seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + 2 * clock-skew`, or an evicted `jti` leaves its proof replayable. | `120` |
+| `mosip.certify.dpop.jti.cache-expire-seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + 2 * clock-skew`, or an evicted `jti` leaves its proof replayable. Certify refuses to start if the resulting `dpopJti` TTL is below this bound. | `120` |
 | `mosip.certify.cache.names` | Must include `dpopJti` for the replay cache to exist. | `...,dpopJti` |
-| `mosip.certify.cache.expire-in-seconds` | Per-cache TTL map; must include a `dpopJti` entry (wired to `mosip.certify.dpop.jti.expire.seconds`), otherwise the TTL rule above is never applied. | `{..., 'dpopJti': ${mosip.certify.dpop.jti.expire.seconds}}` |
+| `mosip.certify.cache.expire-in-seconds` | Per-cache TTL map; must include a `dpopJti` entry (wired to `mosip.certify.dpop.jti.cache-expire-seconds`), otherwise startup fails and the TTL rule above is never applied. | `{..., 'dpopJti': ${mosip.certify.dpop.jti.cache-expire-seconds}}` |
 | `mosip.certify.cache.size` | Per-cache max-entries map for the `simple` (in-memory) cache. Size `dpopJti` to hold **every proof accepted within its TTL** — size-based eviction can drop a still-fresh `jti` before its TTL expires, letting a captured proof pass the replay check. Bound it for the expected proof rate, or use a cache whose policy guarantees TTL retention (e.g. Redis). | `{..., 'dpopJti': 10000}` |
 
 ---

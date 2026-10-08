@@ -2189,7 +2189,7 @@ components:
           description: 'Document type identifier, used for mDL/mDoc credentials.'
         cryptographic_binding_methods_supported:
           type: array
-          description: 'List of supported cryptographic binding methods (e.g., did:jwk, did:web, cose_key).'
+          description: 'List of supported cryptographic binding methods (e.g., did:jwk, did:key, cose_key).'
           items:
             type: string
         credential_signing_alg_values_supported:

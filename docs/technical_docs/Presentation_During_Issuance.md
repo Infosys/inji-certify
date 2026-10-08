@@ -65,15 +65,15 @@ sequenceDiagram
     IVP->>IC: 17. VP verification result (e.g., valid/invalid)
     
     alt If VP is valid 
-            IC-->>W: 18. 200 OK {status:"ok", authorization_code:"..."}
+            IC-->>W: 18. 200 OK {status:"ok", code:"..."}
             W->>IC: 19. POST /oauth/token<br/>{grant_type=authorization_code, code}
             IC-->>W: 20. {access_token, token_type, expires_in}
             W->>IC: 20a. POST /nonce (obtain c_nonce for the proof)
-            IC-->>W: 20b. {c_nonce, c_nonce_expires_in}
+            IC-->>W: 20b. {c_nonce}
             W->>IC: 21. POST /issuance/credential<br/>{credential_configuration_id, proof with c_nonce}
             IC-->>W: 22. {credential}
     else
-            IC-->>W: 18. 400 Bad Request {status:"error", error_description:"VP verification failed"}
+            IC-->>W: 18. 400 Bad Request {status:"error"}
     end
     
 ```
@@ -118,7 +118,7 @@ The Wallet interacts only with Inji Certify; VP verification happens in-process 
 7. **verify-core**: Verifies the VP response against the DCQL query.
 8. **verify-core to Inji Certify**: Returns the VP verification result (e.g., valid/invalid).
 9. **Inji Certify**: Confirms VC is Valid (positive flow).
-10. **Inji Certify to Wallet**: Responds with `200 OK` and `status:"ok"` along with an `authorization_code`.
+10. **Inji Certify to Wallet**: Responds with `200 OK` and `status:"ok"` along with a `code`.
 11. **Wallet to Inji Certify**: `POST /oauth/token` (includes `grant_type="authorization_code"`, `code`).
 12. **Inji Certify to Wallet**: Responds with `access_token`, `token_type`, `expires_in` (no `c_nonce` — the token response does not carry a nonce).
 13. **Wallet to Inji Certify**: `POST /nonce` to obtain a `c_nonce`, then `POST /issuance/credential` (includes `credential_configuration_id`, `proof` with the `c_nonce`, authenticated with `access_token`).
