@@ -113,7 +113,7 @@ sequenceDiagram
 
 ## Failure Responses
 
-A **proof-validation failure** answers **`401 Unauthorized`** with a `WWW-Authenticate` challenge **in the scheme the caller used** (RFC 9449 §7.1) — a DPoP client is challenged with `DPoP`, a Bearer client with `Bearer`. The challenge carries `error`, `error_description`, and — for `invalid_dpop_proof` — an `algs` list advertising which algorithms a proof may be signed with. The `error_description` names the failing claim, so a wallet developer is told which specific check rejected the proof rather than a bare `invalid_dpop_proof`.
+A **proof-validation failure** answers **`401 Unauthorized`** with a `WWW-Authenticate` challenge **in the scheme the caller used** (RFC 9449 §7.1) — a DPoP client is challenged with `DPoP`, a Bearer client with `Bearer`. The challenge carries `error`, `error_description`, and — for `invalid_dpop_proof` — an `algs` list advertising which algorithms a proof may be signed with. The `error_description` identifies which specific check rejected the proof — a claim, a JOSE header parameter (such as an unsupported `alg` or `typ`), or another validation step — so a wallet developer is told what failed rather than getting a bare `invalid_dpop_proof`.
 
 Example challenge for a rejected proof:
 

@@ -136,7 +136,7 @@ sequenceDiagram
     Verify->>Verify: Resolve each key against the DCQL query & verify
     Verify-->>PresSvc: Verification result
     alt All checks successful
-        PresSvc-->>OAuth: status=ok + authorization_code
+        PresSvc-->>OAuth: status=ok + code
         OAuth-->>W: 200 { code }
     else Verification failed
         PresSvc-->>OAuth: status=error
