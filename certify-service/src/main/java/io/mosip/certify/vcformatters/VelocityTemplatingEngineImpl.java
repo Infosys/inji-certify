@@ -1,8 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
 package io.mosip.certify.vcformatters;
 
 import java.io.StringWriter;
@@ -16,6 +11,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.util.introspection.SecureUberspector;
 import org.apache.velocity.tools.generic.DateTool;
 import org.apache.velocity.tools.generic.EscapeTool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +58,8 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
     @PostConstruct
     public void initialize() {
         engine = new VelocityEngine();
-        engine.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8");
-        engine.setProperty(RuntimeConstants.OUTPUT_ENCODING, "UTF-8");
+        engine.setProperty(RuntimeConstants.UBERSPECT_CLASSNAME,
+                SecureUberspector.class.getName());
         engine.init();
         log.info("VelocityTemplatingEngineImpl initialized. Using Spring Cache for CredentialConfig.");
     }
@@ -180,6 +176,16 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
     }
 
     /**
+     * Gets the raw VC template, decoded but not yet templated.
+     * @param templateName is the name of the template
+     * @return the Velocity template as stored for this credential configuration
+     */
+    @Override
+    public String getTemplate(String templateName) {
+        return new String(Base64.decodeBase64(getCachedCredentialConfig(templateName).getVcTemplate()));
+    }
+
+    /**
      * Gets the crypto suite used for VC signature or proof generation
      * @param templateName is the name of the template
      * @return the crypto suite used for VC signature or proof generation
@@ -218,8 +224,7 @@ public class VelocityTemplatingEngineImpl implements VCFormatter {
         // TODO: Isn't template name becoming too complex with VC_CONTEXTS & CREDENTIAL_TYPES both?
         String templateName = updatedTemplateParams.get(TEMPLATE_NAME).toString();
         String issuer = updatedTemplateParams.get(DID_URL).toString();
-        String vcTemplateString = getCachedCredentialConfig(templateName).getVcTemplate(); // NEW
-        vcTemplateString = new String(Base64.decodeBase64(vcTemplateString));
+        String vcTemplateString = getTemplate(templateName);
         StringWriter writer = new StringWriter();
         // TODO: Eventually, the credentialSubject from the plugin will be templated as-is
         // Date: https://velocity.apache.org/tools/3.1/apidocs/org/apache/velocity/tools/generic/DateTool.html

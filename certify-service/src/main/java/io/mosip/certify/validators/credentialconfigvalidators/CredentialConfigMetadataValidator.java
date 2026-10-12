@@ -1,8 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
 package io.mosip.certify.validators.credentialconfigvalidators;
 
 import io.mosip.certify.core.constants.Constants;
@@ -108,9 +103,8 @@ public class CredentialConfigMetadataValidator {
         for (String signingAlg : effective) {
             if (!coseSigningAlgs.contains(signingAlg)) {
                 errors.add(buildError(ErrorConstants.UNSUPPORTED_CREDENTIAL_SIGNING_ALG,
-                        "The credential signing algorithm " + signingAlg + " has no COSE equivalent and cannot be used "
-                                + "with the credential format " + VCFormats.MSO_MDOC + ". The supported values are: "
-                                + coseSigningAlgs));
+                        "The credential signing algorithm " + signingAlg + " is not supported for the credential format "
+                                + VCFormats.MSO_MDOC + ". The supported values are: " + coseSigningAlgs));
             }
         }
     }

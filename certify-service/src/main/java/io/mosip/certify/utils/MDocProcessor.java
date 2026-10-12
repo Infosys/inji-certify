@@ -1,8 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
 package io.mosip.certify.utils;
 
 import co.nstant.in.cbor.CborDecoder;
@@ -460,7 +455,13 @@ public class MDocProcessor {
         String deviceKeyEncoded = deviceInfo.toString();
         if (deviceKeyEncoded.startsWith(Constants.DID_JWK_PREFIX)) {
             deviceKeyEncoded = deviceKeyEncoded.substring(Constants.DID_JWK_PREFIX.length());
-            deviceKeyEncoded = deviceKeyEncoded.replace("#0","");
+            // Drop the DID URL fragment (#0 or any other): it selects a verification method and is
+            // not part of the encoded key. replace("#0", "") missed other fragments and could also
+            // remove "#0" from the middle of the value.
+            int fragment = deviceKeyEncoded.indexOf('#');
+            if (fragment >= 0) {
+                deviceKeyEncoded = deviceKeyEncoded.substring(0, fragment);
+            }
         }
 
         byte[] decodedBytes = Base64.getUrlDecoder().decode(deviceKeyEncoded);

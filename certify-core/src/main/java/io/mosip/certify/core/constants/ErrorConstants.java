@@ -1,8 +1,3 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
 package io.mosip.certify.core.constants;
 
 public class ErrorConstants {
@@ -100,4 +95,5 @@ public class ErrorConstants {
     public static final String AUTHORIZATION_SERVER_NOT_CONFIGURED = "authorization_server_not_configured";
     public static final String INVALID_CREDENTIAL_REQUEST = "invalid_credential_request";
     public static final String INVALID_DPOP_PROOF = "invalid_dpop_proof";
+    public static final String SERVER_ERROR = "server_error";
 }
