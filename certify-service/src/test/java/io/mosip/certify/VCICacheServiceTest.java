@@ -17,8 +17,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -360,6 +368,38 @@ public class VCICacheServiceTest {
 
         assertTrue(vciCacheService.claimPreAuthCode("code"));
         assertFalse(vciCacheService.claimPreAuthCode("code"));
+    }
+
+    @Test
+    public void should_letExactlyOneWin_when_twoInstancesClaimConcurrentlyOverSharedCache() throws Exception {
+        // Two independently constructed services over ONE shared cache model two pods sharing
+        // one Redis. ConcurrentMapCache.putIfAbsent is atomic, the same contract as Redis
+        // SET NX - so a race that this harness cannot double-redeem, production cannot either.
+        // A synchronized(this) guard would pass per-instance mock tests yet still double-redeem
+        // here, because each instance locks its own monitor; only the atomic cache op survives.
+        ConcurrentMapCacheManager manager = new ConcurrentMapCacheManager("preAuthCodeCache");
+        manager.getCache("preAuthCodeCache").put(Constants.PRE_AUTH_CODE_PREFIX + "code", new PreAuthCodeData());
+
+        VCICacheService first = new VCICacheService(manager);
+        VCICacheService second = new VCICacheService(manager);
+
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            AtomicInteger winners = new AtomicInteger();
+            // Each task claims on its own instance, released simultaneously by the latch.
+            Future<Boolean> f1 = pool.submit(() -> { start.await(); return first.claimPreAuthCode("code"); });
+            Future<Boolean> f2 = pool.submit(() -> { start.await(); return second.claimPreAuthCode("code"); });
+
+            start.countDown();
+
+            if (Boolean.TRUE.equals(f1.get(5, TimeUnit.SECONDS))) winners.incrementAndGet();
+            if (Boolean.TRUE.equals(f2.get(5, TimeUnit.SECONDS))) winners.incrementAndGet();
+
+            assertEquals("Exactly one instance must redeem the pre-authorized code", 1, winners.get());
+        } finally {
+            pool.shutdownNow();
+        }
     }
 }
 
