@@ -150,14 +150,26 @@ public class VCICacheService {
     }
 
     public boolean claimPreAuthCode(String preAuthCode) {
-        synchronized (this) {
-            PreAuthCodeData codeData = getPreAuthCodeData(preAuthCode);
-            if (codeData == null || isPreAuthCodeUsed(preAuthCode)) {
-                return false;
-            }
-            markPreAuthCodeAsUsed(preAuthCode);
-            return true;
+        Cache cache = cacheManager.getCache("preAuthCodeCache");
+        if (cache == null) {
+            log.error("Cache preAuthCodeCache not available for claiming code");
+            return false;
         }
+
+        // Cannot claim a code that does not exist.
+        if (getPreAuthCodeData(preAuthCode) == null) {
+            return false;
+        }
+
+        // Atomically claim the code. Only the first caller succeeds.
+        String usedKey = "used:" + preAuthCode;
+        if (cache.putIfAbsent(usedKey, true) != null) {
+            return false;
+        }
+
+        // Remove one-time pre-authorized code data.
+        cache.evict(Constants.PRE_AUTH_CODE_PREFIX + preAuthCode);
+        return true;
     }
 
     /**

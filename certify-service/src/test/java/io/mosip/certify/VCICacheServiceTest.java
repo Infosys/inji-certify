@@ -323,10 +323,11 @@ public class VCICacheServiceTest {
         Cache.ValueWrapper dataWrapper = mock(Cache.ValueWrapper.class);
         when(dataWrapper.get()).thenReturn(data);
         when(cache.get("pre_auth_code:code")).thenReturn(dataWrapper);
-        when(cache.get("used:code")).thenReturn(null);
+        when(cache.putIfAbsent("used:code", true)).thenReturn(null);
 
         assertTrue(vciCacheService.claimPreAuthCode("code"));
-        verify(cache).put("used:code", true);
+        verify(cache).putIfAbsent("used:code", true);
+        verify(cache).evict("pre_auth_code:code");
     }
 
     @Test
@@ -334,11 +335,30 @@ public class VCICacheServiceTest {
         PreAuthCodeData data = new PreAuthCodeData();
         Cache.ValueWrapper dataWrapper = mock(Cache.ValueWrapper.class);
         when(dataWrapper.get()).thenReturn(data);
-        Cache.ValueWrapper usedWrapper = mock(Cache.ValueWrapper.class);
-        when(usedWrapper.get()).thenReturn(Boolean.TRUE);
         when(cache.get("pre_auth_code:code")).thenReturn(dataWrapper);
-        when(cache.get("used:code")).thenReturn(usedWrapper);
+        Cache.ValueWrapper existing = mock(Cache.ValueWrapper.class);
+        when(cache.putIfAbsent("used:code", true)).thenReturn(existing);
 
+        assertFalse(vciCacheService.claimPreAuthCode("code"));
+        verify(cache, never()).evict(anyString());
+    }
+
+    @Test
+    public void should_returnFalse_when_preAuthCodeCacheIsNullOnClaim() {
+        when(cacheManager.getCache("preAuthCodeCache")).thenReturn(null);
+        assertFalse(vciCacheService.claimPreAuthCode("code"));
+    }
+
+    @Test
+    public void should_returnTrueThenFalse_when_cacheAllowsOnlyOneClaim() {
+        PreAuthCodeData data = new PreAuthCodeData();
+        Cache.ValueWrapper dataWrapper = mock(Cache.ValueWrapper.class);
+        when(dataWrapper.get()).thenReturn(data);
+        when(cache.get("pre_auth_code:code")).thenReturn(dataWrapper);
+        Cache.ValueWrapper existing = mock(Cache.ValueWrapper.class);
+        when(cache.putIfAbsent("used:code", true)).thenReturn(null).thenReturn(existing);
+
+        assertTrue(vciCacheService.claimPreAuthCode("code"));
         assertFalse(vciCacheService.claimPreAuthCode("code"));
     }
 }
