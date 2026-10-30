@@ -362,6 +362,7 @@ public class VCICacheServiceTest {
         @Override public String getName() { return delegate.getName(); }
         @Override public Object getNativeCache() { return delegate.getNativeCache(); }
         @Override public ValueWrapper get(Object key) {
+            ValueWrapper value = delegate.get(key);
             if (barrierKey.equals(key)) {
                 try {
                     barrier.await(5, TimeUnit.SECONDS);
@@ -372,7 +373,7 @@ public class VCICacheServiceTest {
                     throw new IllegalStateException(e);
                 }
             }
-            return delegate.get(key);
+            return value;
         }
         @Override public <T> T get(Object key, Class<T> type) { return delegate.get(key, type); }
         @Override public <T> T get(Object key, java.util.concurrent.Callable<T> valueLoader) { return delegate.get(key, valueLoader); }
