@@ -45,6 +45,22 @@ Certify accepts an access token under either the `Bearer` or the `DPoP` authoriz
 
 The **downgrade guard** (RFC 9449 §7.2, *Compatibility with the Bearer Authentication Scheme*) is the point of the feature: accepting a sender-constrained token as a plain Bearer token would silently discard exactly the protection the binding provides, letting a stolen token work again. Scheme names are compared case-insensitively (`DPoP`, `dpop`, `Bearer`, `bearer` all resolve).
 
+### Disabling DPoP
+
+`mosip.certify.dpop.enabled` declares whether the deployment offers the DPoP path at all. It defaults to `true` when unset, so an existing deployment upgrades with no change in behaviour. Only `true` or `false` is accepted, in any case; any other value, such as `yes`, `1` or a typo, stops Certify at startup rather than silently turning DPoP off. Set it to `false` for a deployment whose authorization server does not issue DPoP-bound tokens, and Certify becomes a Bearer-only resource server:
+
+| Token | Presented as | Result with DPoP disabled |
+|---|---|---|
+| plain (no `cnf`) | `Bearer` | **accepted**, exactly as when enabled |
+| any | `DPoP` | **refused**: `401`, `error="invalid_token"`, `"DPoP is not supported by this deployment. Use a Bearer token."` |
+| DPoP-bound (`cnf.jkt`) | `Bearer` | **refused**: the downgrade guard applies in both modes |
+
+- The `DPoP`-scheme refusal happens at the start of `AccessTokenValidationFilter`, before the access token is decoded and before the request reaches a controller, so neither the token nor the request body is examined, and no DPoP proof is parsed or recorded for replay detection.
+- It carries `invalid_token`, not `invalid_dpop_proof`, because no proof takes part in it.
+- Every challenge is a `Bearer` challenge with no `algs` parameter, since a DPoP retry can never succeed against this deployment.
+- `DpopProofValidator` is not created, so the other `mosip.certify.dpop.*` properties are ignored and the `dpopJti` cache does not need to be configured.
+- The effective mode is logged at startup: `DPoP support is enabled: ...` or `DPoP support is disabled: ...`.
+
 ---
 
 ## Proof Validation
@@ -132,12 +148,13 @@ WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof
 |---|---|---|
 | `mosip.certify.authn.filter-urls` | URLs on which the access-token (Bearer/DPoP) filter runs. | `{ '${server.servlet.path}/issuance/credential'}` |
 | `mosip.certify.domain.url` | Public issuer address; basis for the `htu` check (see note above). | `http://localhost:8090` |
+| `mosip.certify.dpop.enabled` | Whether the DPoP path is offered. `false` makes Certify Bearer-only and the properties below are ignored (see [Disabling DPoP](#disabling-dpop)). Defaults to `true` when unset; any value other than `true` or `false` fails startup. | `true` |
 | `mosip.certify.dpop.allowed-algorithms` | Signature algorithms accepted on a DPoP proof, and advertised in the `algs` challenge parameter. Asymmetric only. | `ES256,ES384,ES512,RS256,PS256,EdDSA` |
 | `mosip.certify.dpop.proof-max-age` | How old a proof's `iat` may be, in seconds. | `60` |
 | `mosip.certify.dpop.clock-skew` | Tolerance for device clock drift, applied on both sides of the freshness window. | `10` |
 | `mosip.certify.dpop.jti.cache-expire-seconds` | `jti` replay-cache TTL. **Must exceed** `proof-max-age + 2 * clock-skew`, or an evicted `jti` leaves its proof replayable. Certify refuses to start if the resulting `dpopJti` TTL is below this bound. | `120` |
 | `mosip.certify.cache.names` | Must include `dpopJti` for the replay cache to exist. | `...,dpopJti` |
-| `mosip.certify.cache.expire-in-seconds` | Per-cache TTL map; must include a `dpopJti` entry (wired to `mosip.certify.dpop.jti.cache-expire-seconds`), otherwise startup fails and the TTL rule above is never applied. | `{..., 'dpopJti': ${mosip.certify.dpop.jti.cache-expire-seconds}}` |
+| `mosip.certify.cache.expire-in-seconds` | Per-cache TTL map; must include a `dpopJti` entry (wired to `mosip.certify.dpop.jti.cache-expire-seconds`, with `120` as the fallback so a Bearer-only deployment can leave that property out), otherwise startup fails and the TTL rule above is never applied. | `{..., 'dpopJti': ${mosip.certify.dpop.jti.cache-expire-seconds:120}}` |
 | `mosip.certify.cache.size` | Per-cache max-entries map for the `simple` (in-memory) cache. Size `dpopJti` to hold **every proof accepted within its TTL** — size-based eviction can drop a still-fresh `jti` before its TTL expires, letting a captured proof pass the replay check. Bound it for the expected proof rate, or use a cache whose policy guarantees TTL retention (e.g. Redis). | `{..., 'dpopJti': 10000}` |
 
 ---

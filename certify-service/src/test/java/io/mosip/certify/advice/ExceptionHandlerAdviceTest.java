@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import io.mosip.certify.core.constants.AuthErrorMessages;
 import io.mosip.certify.core.constants.Constants;
 import io.mosip.certify.core.constants.ErrorConstants;
 import io.mosip.certify.core.dto.OAuthTokenError;
@@ -175,7 +176,7 @@ public class ExceptionHandlerAdviceTest {
     public void should_answerInvalidTokenAndAdvertiseDpop_when_boundTokenIsPresentedAsBearer() {
         // RFC 9449 §7.2 Figure 18: the error goes on the scheme the caller used, and a
         // separate DPoP challenge tells it to retry under DPoP. algs belongs to DPoP only.
-        String description = "This access token is DPoP-bound and cannot be presented as a Bearer token.";
+        String description = AuthErrorMessages.ERROR_TOKEN_REQUIRES_DPOP;
         HttpServletRequest req = authFailure(ErrorConstants.INVALID_AUTH_TOKEN, description, "Bearer");
         when(req.getAttribute(Constants.AUTH_DPOP_REQUIRED_ATTRIBUTE)).thenReturn(Boolean.TRUE);
         withAllowedAlgorithms("ES256", "RS256");
@@ -248,14 +249,14 @@ public class ExceptionHandlerAdviceTest {
     @Test
     public void should_omitDpopChallenge_when_noAlgorithmsAreConfigured() {
         HttpServletRequest req = authFailure(ErrorConstants.INVALID_AUTH_TOKEN,
-                "This access token is DPoP-bound and cannot be presented as a Bearer token.", "Bearer");
+                AuthErrorMessages.ERROR_TOKEN_REQUIRES_DPOP, "Bearer");
         when(req.getAttribute(Constants.AUTH_DPOP_REQUIRED_ATTRIBUTE)).thenReturn(Boolean.TRUE);
         withAllowedAlgorithms();
 
         ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
                 new NotAuthenticatedException(ErrorConstants.INVALID_AUTH_TOKEN), req);
 
-        assertEquals("Bearer error=\"invalid_token\", error_description=\"This access token is DPoP-bound and cannot be presented as a Bearer token.\"",
+        assertEquals("Bearer error=\"invalid_token\", error_description=\"" + AuthErrorMessages.ERROR_TOKEN_REQUIRES_DPOP + "\"",
                 response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
     }
 
@@ -407,6 +408,43 @@ public class ExceptionHandlerAdviceTest {
         assertEquals(ErrorConstants.SERVER_ERROR, response.getBody().getError());
         // No challenge: there is nothing the caller could change about its credentials.
         Assert.assertNull(response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @Test
+    public void should_answerBearerChallengeWithoutAlgs_when_dpopIsDisabledAndDpopSchemeIsRejected() {
+        // What AccessTokenValidationFilter records for a DPoP-scheme request on a
+        // deployment with DPoP disabled. The validator bean is absent in that mode.
+        HttpServletRequest req = Mockito.mock(HttpServletRequest.class);
+        when(req.getAttribute(Constants.AUTH_ERROR_ATTRIBUTE)).thenReturn(AuthErrorMessages.ERROR_DPOP_NOT_SUPPORTED);
+        when(req.getAttribute(Constants.AUTH_ERROR_CODE_ATTRIBUTE)).thenReturn(ErrorConstants.INVALID_AUTH_TOKEN);
+        when(req.getAttribute(Constants.AUTH_SCHEME_ATTRIBUTE)).thenReturn(Constants.SCHEME_BEARER);
+        advice = new ExceptionHandlerAdvice(messageSource, null);
+
+        ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(new NotAuthenticatedException(), req);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(ErrorConstants.INVALID_AUTH_TOKEN, response.getBody().getError());
+        assertEquals(AuthErrorMessages.ERROR_DPOP_NOT_SUPPORTED,
+                response.getBody().getError_description());
+        assertEquals("Bearer error=\"invalid_token\", error_description=\"" + AuthErrorMessages.ERROR_DPOP_NOT_SUPPORTED + "\"",
+                response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @Test
+    public void should_notAdvertiseAlgs_when_dpopIsDisabledAndDpopBoundTokenIsPresentedAsBearer() {
+        // The downgrade guard normally adds a DPoP challenge with algs (RFC 9449 §7.2).
+        // With DPoP disabled no DPoP retry can succeed, so the challenge is Bearer alone.
+        String description = AuthErrorMessages.ERROR_TOKEN_REQUIRES_DPOP;
+        HttpServletRequest req = authFailure(ErrorConstants.INVALID_AUTH_TOKEN, description, Constants.SCHEME_BEARER);
+        when(req.getAttribute(Constants.AUTH_DPOP_REQUIRED_ATTRIBUTE)).thenReturn(Boolean.TRUE);
+        advice = new ExceptionHandlerAdvice(messageSource, null);
+
+        ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
+                new NotAuthenticatedException(ErrorConstants.INVALID_AUTH_TOKEN), req);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals("Bearer error=\"invalid_token\", error_description=\"" + description + "\"",
+                response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
     }
 
     @Test

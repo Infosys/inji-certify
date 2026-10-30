@@ -62,8 +62,10 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler imple
      * <p>The validator is asked for the list rather than the property being bound here a
      * second time: two bindings of one key can be edited apart, and a challenge that
      * advertises algorithms the validator does not accept sends a wallet developer
-     * chasing a fault that is not theirs. Optional (null when there is no validator bean)
-     * so the advice still answers, just without the {@code algs} hint.
+     * chasing a fault that is not theirs. Optional because the validator does not exist
+     * when {@code mosip.certify.dpop.enabled} is false, and a Bearer-only deployment must
+     * not advertise DPoP algorithms; an advice built outside a Spring context likewise
+     * answers without the {@code algs} hint.
      */
     private final DpopProofValidator dpopProofValidator;
 
