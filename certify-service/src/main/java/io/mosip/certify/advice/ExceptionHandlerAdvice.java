@@ -224,22 +224,20 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler imple
             StringBuilder challenge = new StringBuilder(scheme)
                     .append(" error=\"").append(quoteAuthParam(errorCode)).append('"')
                     .append(", error_description=\"").append(quoteAuthParam(description)).append('"');
-            // algs comes from configuration rather than the request, so it is not
-            // attacker-controlled - but it is still a dynamic value, and escaping it
-            // keeps every quoted auth-param in this header safe by the same rule.
             List<String> algs = dpopProofValidator == null
                     ? List.of()
                     : dpopProofValidator.getAllowedAlgorithms();
-            if(INVALID_DPOP_PROOF.equals(errorCode) && !algs.isEmpty()) {
-                challenge.append(", algs=\"")
-                        .append(quoteAuthParam(String.join(" ", algs)))
-                        .append('"');
+            if((INVALID_DPOP_PROOF.equals(errorCode)
+                    || Boolean.TRUE.equals(request.getAttribute(Constants.AUTH_DPOP_BINDING_FAILED_ATTRIBUTE)))
+                    && !algs.isEmpty()) {
+                // A rejected proof, or a valid proof with a token not bound to its key - the
+                // latter is invalid_token, with algs still on the DPoP challenge (RFC 9449 §7.1,
+                // Figure 16).
+                appendAlgs(challenge.append(", "), algs);
             } else if(Boolean.TRUE.equals(request.getAttribute(Constants.AUTH_DPOP_REQUIRED_ATTRIBUTE)) && !algs.isEmpty()) {
                 // A bound token presented as Bearer gets a second, error-free DPoP challenge,
                 // telling the client to retry under DPoP (RFC 9449 §7.2, Figure 18).
-                challenge.append(", ").append(Constants.SCHEME_DPOP).append(" algs=\"")
-                        .append(quoteAuthParam(String.join(" ", algs)))
-                        .append('"');
+                appendAlgs(challenge.append(", ").append(Constants.SCHEME_DPOP).append(' '), algs);
             }
             headers.set(HttpHeaders.WWW_AUTHENTICATE, challenge.toString());
             return new ResponseEntity<>(getVCErrorDto(errorCode, description), headers, HttpStatus.UNAUTHORIZED);
@@ -439,6 +437,17 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler imple
             default:
                 return HttpStatus.BAD_REQUEST;
         }
+    }
+
+    /**
+     * Appends the {@code algs} auth-param, listing what a DPoP proof may be signed with.
+     *
+     * <p>algs comes from configuration rather than the request, so it is not
+     * attacker-controlled - but it is still a dynamic value, and escaping it keeps every
+     * quoted auth-param in the header safe by the same rule.
+     */
+    private static void appendAlgs(StringBuilder challenge, List<String> algs) {
+        challenge.append("algs=\"").append(quoteAuthParam(String.join(" ", algs))).append('"');
     }
 
     /**

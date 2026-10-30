@@ -233,6 +233,38 @@ public class ExceptionHandlerAdviceTest {
     }
 
     @Test
+    public void should_answerInvalidTokenWithAlgs_when_tokenIsNotBoundToTheProofKey() {
+        // RFC 9449 §7.1 Figure 16: the token failed the binding, so invalid_token, and the
+        // DPoP challenge still advertises algs.
+        String description = "Access token is not DPoP-bound: cnf claim is missing";
+        HttpServletRequest req = authFailure(ErrorConstants.INVALID_AUTH_TOKEN, description, "DPoP");
+        when(req.getAttribute(Constants.AUTH_DPOP_BINDING_FAILED_ATTRIBUTE)).thenReturn(Boolean.TRUE);
+        withAllowedAlgorithms("ES256", "RS256");
+
+        ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
+                new NotAuthenticatedException(ErrorConstants.INVALID_AUTH_TOKEN), req);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals("invalid_token", response.getBody().getError());
+        assertEquals("DPoP error=\"invalid_token\", error_description=\"" + description + "\", algs=\"ES256 RS256\"",
+                response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @Test
+    public void should_omitAlgs_when_tokenBindingFailsAndNoAlgorithmsAreConfigured() {
+        String description = "DPoP proof key does not match the access token binding";
+        HttpServletRequest req = authFailure(ErrorConstants.INVALID_AUTH_TOKEN, description, "DPoP");
+        when(req.getAttribute(Constants.AUTH_DPOP_BINDING_FAILED_ATTRIBUTE)).thenReturn(Boolean.TRUE);
+        withAllowedAlgorithms();
+
+        ResponseEntity<VCError> response = advice.handleVCIControllerExceptions(
+                new NotAuthenticatedException(ErrorConstants.INVALID_AUTH_TOKEN), req);
+
+        assertEquals("DPoP error=\"invalid_token\", error_description=\"" + description + "\"",
+                response.getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @Test
     public void should_keepBearerChallengeWithoutAlgs_when_authorizationHeaderIsMissing() {
         // The filter records no scheme and no code here, only the reason.
         String description = "Authorization header with a Bearer or DPoP token is required.";

@@ -32,6 +32,7 @@ import io.mosip.certify.core.constants.AuthErrorMessages;
 import io.mosip.certify.core.constants.Constants;
 import io.mosip.certify.core.constants.ErrorConstants;
 import io.mosip.certify.core.exception.CertifyException;
+import io.mosip.certify.core.exception.DpopBindingException;
 import io.mosip.certify.core.exception.InvalidDpopHeaderException;
 import io.mosip.certify.core.exception.NotAuthenticatedException;
 import io.mosip.certify.dpop.DpopProofValidator;
@@ -293,9 +294,18 @@ public class AccessTokenValidationFilter extends OncePerRequestFilter {
             if (dpopHeaders.hasMoreElements()) {
                 throw new InvalidDpopHeaderException(ERROR_MULTIPLE_DPOP_PROOFS);
             }
-            // Everything the proof has to satisfy - structure, signature, request and token
-            // binding, freshness, single use - is decided in there.
-            dpopProofValidator.validate(dpopToken, token, jwt.getClaims(), request);
+            // Everything the proof has to satisfy - structure, signature, request binding, ath,
+            // freshness, single use - is decided in there, failing with invalid_dpop_proof. Once
+            // the proof is valid, the token is rejected in there too, with invalid_token, when it
+            // is not bound to the proof key (cnf.jkt).
+            try {
+                dpopProofValidator.validate(dpopToken, token, jwt.getClaims(), request);
+            } catch (DpopBindingException e) {
+                // A valid proof with a token not bound to its key: the advice keeps algs on
+                // this invalid_token, as no other DPoP token failure gets them.
+                request.setAttribute(Constants.AUTH_DPOP_BINDING_FAILED_ATTRIBUTE, Boolean.TRUE);
+                throw e;
+            }
 
         } else if (isDpopBoundAccessToken(jwt.getClaims())) {
             // The one Bearer failure the client can fix by switching to DPoP, so the advice

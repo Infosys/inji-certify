@@ -7,6 +7,8 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.mosip.certify.core.exception.CertifyException;
+import io.mosip.certify.core.exception.DpopBindingException;
+import io.mosip.certify.core.exception.InvalidDpopHeaderException;
 import io.mosip.certify.core.exception.NotAuthenticatedException;
 import io.mosip.certify.core.dto.ParsedAccessToken;
 import io.mosip.certify.dpop.DpopProofValidator;
@@ -314,6 +316,47 @@ class AccessTokenValidationFilterTest {
 
         verify(parsedAccessToken).setActive(false);
         assertEquals(ErrorConstants.SERVER_ERROR, request.getAttribute(Constants.AUTH_ERROR_CODE_ATTRIBUTE));
+    }
+
+    @Test
+    public void should_markTheBindingFailure_when_dpopTokenIsNotBoundToTheProofKey() throws ServletException, IOException {
+        // The advice keys the algs on this invalid_token off the marker.
+        request.addHeader("Authorization", "DPoP " + TOKEN);
+        request.addHeader("DPoP", "a.proof.jwt");
+        request.setRequestURI("/api/v1/secured");
+
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getClaims()).thenReturn(createValidClaims());
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        doThrow(new DpopBindingException("Access token is not DPoP-bound: cnf claim is missing"))
+                .when(dpopProofValidator).validate(anyString(), anyString(), any(), any());
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(parsedAccessToken).setActive(false);
+        assertEquals(ErrorConstants.INVALID_AUTH_TOKEN, request.getAttribute(Constants.AUTH_ERROR_CODE_ATTRIBUTE));
+        assertEquals("Access token is not DPoP-bound: cnf claim is missing",
+                request.getAttribute(Constants.AUTH_ERROR_ATTRIBUTE));
+        assertEquals(Boolean.TRUE, request.getAttribute(Constants.AUTH_DPOP_BINDING_FAILED_ATTRIBUTE));
+    }
+
+    @Test
+    public void should_notMarkABindingFailure_when_dpopProofIsInvalid() throws ServletException, IOException {
+        request.addHeader("Authorization", "DPoP " + TOKEN);
+        request.addHeader("DPoP", "a.proof.jwt");
+        request.setRequestURI("/api/v1/secured");
+
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getClaims()).thenReturn(createValidClaims());
+        when(jwtDecoder.decode(anyString())).thenReturn(jwt);
+        doThrow(new InvalidDpopHeaderException("DPoP proof is missing the jti claim"))
+                .when(dpopProofValidator).validate(anyString(), anyString(), any(), any());
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(parsedAccessToken).setActive(false);
+        assertEquals(ErrorConstants.INVALID_DPOP_PROOF, request.getAttribute(Constants.AUTH_ERROR_CODE_ATTRIBUTE));
+        assertNull(request.getAttribute(Constants.AUTH_DPOP_BINDING_FAILED_ATTRIBUTE));
     }
 
     @Test
